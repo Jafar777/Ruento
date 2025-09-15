@@ -3,6 +3,9 @@ import Hero from "./components/Hero";
 import NextTrip from "./components/NextTrip";
 import Services from "./components/Services";
 import GetToKnowRussia from "./components/GetToKnowRussia";
+import BlogSection from "./components/BlogSection";
+import Contact from "./components/Contact";
+import Footer from "./components/Footer";
 
 export default function Home() {
   return (
@@ -11,6 +14,9 @@ export default function Home() {
      < NextTrip />
      <Services />
      <GetToKnowRussia />
+     <BlogSection />
+     <Contact />
+     <Footer />
     </div>
   );
 }
