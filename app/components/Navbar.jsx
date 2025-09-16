@@ -9,7 +9,7 @@ import { useGSAP } from "@gsap/react";
 import Link from 'next/link';
 import { useLanguage } from '../context/LanguageContext';
 import Image from 'next/image';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 
 // Social Modal Component (unchanged)
 const SocialModal = ({ isOpen, onClose }) => {
@@ -91,14 +91,22 @@ const LocationModal = ({ isOpen, onClose }) => {
     );
 };
 
-// Mobile Sidebar Component - Updated to handle login status
-const MobileSidebar = ({ isOpen, onClose, setSocialModalOpen, setLocationModalOpen, isLoggedIn }) => {
+// Mobile Sidebar Component - Updated to handle navigation
+const MobileSidebar = ({ isOpen, onClose, setSocialModalOpen, setLocationModalOpen, isLoggedIn, handleNavigation, handleServiceNavigation }) => {
     const sidebarRef = useRef();
     const { translations, toggleLanguage, currentLanguage } = useLanguage();
     const [showServices, setShowServices] = useState(false);
     const [showRussia, setShowRussia] = useState(false);
 
-    const handleLinkClick = () => {
+    const handleLinkClick = (sectionId = null) => {
+        if (sectionId) {
+            handleNavigation(sectionId);
+        }
+        onClose();
+    };
+
+    const handleServiceLinkClick = (serviceId) => {
+        handleServiceNavigation(serviceId);
         onClose();
     };
 
@@ -136,9 +144,9 @@ const MobileSidebar = ({ isOpen, onClose, setSocialModalOpen, setLocationModalOp
                     </button>
                     <div className="mt-12">
                         <nav className="flex flex-col space-y-4">
-                            <Link href="/" className="text-gray-800 hover:text-blue-500 transition py-2" onClick={handleLinkClick}>
+                            <button onClick={() => handleLinkClick('hero')} className="text-gray-800 hover:text-blue-500 transition py-2 text-left">
                                 {translations.home}
-                            </Link>
+                            </button>
 
                             <div>
                                 <button
@@ -150,23 +158,21 @@ const MobileSidebar = ({ isOpen, onClose, setSocialModalOpen, setLocationModalOp
                                 </button>
                                 {showServices && (
                                     <div className="pl-4 mt-2 flex flex-col space-y-2 border-l border-gray-200">
-                                        <Link href="/plans" className="text-gray-600 hover:text-blue-500 py-1" onClick={handleLinkClick}>
+                                        <button onClick={() => handleServiceLinkClick('plans')} className="text-gray-600 hover:text-blue-500 py-1 text-left">
                                             {translations.plans}
-                                        </Link>
-                                        <Link href="/transportation" className="text-gray-600 hover:text-blue-500 py-1" onClick={handleLinkClick}>
+                                        </button>
+                                        <button onClick={() => handleServiceLinkClick('transportation')} className="text-gray-600 hover:text-blue-500 py-1 text-left">
                                             {translations.transportation}
-                                        </Link>
-                                        <Link href="/hotels" className="text-gray-600 hover:text-blue-500 py-1" onClick={handleLinkClick}>
+                                        </button>
+                                        <button onClick={() => handleServiceLinkClick('hotels')} className="text-gray-600 hover:text-blue-500 py-1 text-left">
                                             {translations.hotels}
-                                        </Link>
-                                        <Link href="/residence" className="text-gray-600 hover:text-blue-500 py-1" onClick={handleLinkClick}>
+                                        </button>
+                                        <button onClick={() => handleServiceLinkClick('residence')} className="text-gray-600 hover:text-blue-500 py-1 text-left">
                                             {translations.residence}
-                                        </Link>
+                                        </button>
                                     </div>
                                 )}
                             </div>
-
-
 
                             <div>
                                 <button
@@ -178,41 +184,38 @@ const MobileSidebar = ({ isOpen, onClose, setSocialModalOpen, setLocationModalOp
                                 </button>
                                 {showRussia && (
                                     <div className="pl-4 mt-2 flex flex-col space-y-2 border-l border-gray-200">
-                                        <Link href="/restaurants" className="text-gray-600 hover:text-blue-500 py-1" onClick={handleLinkClick}>
+                                        <button onClick={() => handleLinkClick('get-to-know-russia')} className="text-gray-600 hover:text-blue-500 py-1 text-left">
                                             {translations.restaurants}
-                                        </Link>
-                                        <Link href="/attractions" className="text-gray-600 hover:text-blue-500 py-1" onClick={handleLinkClick}>
+                                        </button>
+                                        <button onClick={() => handleLinkClick('get-to-know-russia')} className="text-gray-600 hover:text-blue-500 py-1 text-left">
                                             {translations.touristAttractions}
-                                        </Link>
-                                        <Link href="/events" className="text-gray-600 hover:text-blue-500 py-1" onClick={handleLinkClick}>
+                                        </button>
+                                        <button onClick={() => handleLinkClick('get-to-know-russia')} className="text-gray-600 hover:text-blue-500 py-1 text-left">
                                             {translations.events}
-                                        </Link>
-                                        <Link href="/shopping" className="text-gray-600 hover:text-blue-500 py-1" onClick={handleLinkClick}>
+                                        </button>
+                                        <button onClick={() => handleLinkClick('get-to-know-russia')} className="text-gray-600 hover:text-blue-500 py-1 text-left">
                                             {translations.shopping}
-                                        </Link>
-                                        <Link href="/museums" className="text-gray-600 hover:text-blue-500 py-1" onClick={handleLinkClick}>
+                                        </button>
+                                        <button onClick={() => handleLinkClick('get-to-know-russia')} className="text-gray-600 hover:text-blue-500 py-1 text-left">
                                             {translations.museums}
-                                        </Link>
-                                        <Link href="/natural-places" className="text-gray-600 hover:text-blue-500 py-1" onClick={handleLinkClick}>
+                                        </button>
+                                        <button onClick={() => handleLinkClick('get-to-know-russia')} className="text-gray-600 hover:text-blue-500 py-1 text-left">
                                             {translations.naturalPlaces}
-                                        </Link>
+                                        </button>
                                     </div>
                                 )}
                             </div>
 
-
-                                <Link href="/contact" className="text-gray-800 hover:text-blue-500 transition py-2" onClick={handleLinkClick}>
-                                    {translations.contact}
-                                </Link>
-
-
+                            <button onClick={() => handleLinkClick('contact')} className="text-gray-800 hover:text-blue-500 transition py-2 text-left">
+                                {translations.contact}
+                            </button>
                         </nav>
 
                         <div className="mt-8 border-t pt-4">
                             <Link
                                 href={isLoggedIn ? "/admin/dashboard" : "/admin/login"}
                                 className="flex items-center space-x-2 text-gray-800 hover:text-blue-500 transition py-2 w-full"
-                                onClick={handleLinkClick}
+                                onClick={() => handleLinkClick()}
                             >
                                 <FaUser size={20} />
                                 <span>{isLoggedIn ? translations.dashboard : translations.adminLogin}</span>
@@ -249,7 +252,7 @@ const MobileSidebar = ({ isOpen, onClose, setSocialModalOpen, setLocationModalOp
     );
 };
 
-// Main Navbar Component with fixes for mobile view
+// Main Navbar Component with navigation handling
 const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
     const [socialModalOpen, setSocialModalOpen] = useState(false);
@@ -258,11 +261,12 @@ const Navbar = () => {
     const [servicesHovered, setServicesHovered] = useState(false);
     const [russiaHovered, setRussiaHovered] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false); // Added login state
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const navbarRef = useRef();
     const { translations, toggleLanguage, currentLanguage } = useLanguage();
-
+    const router = useRouter();
     const pathname = usePathname();
+
     const isAdminLoginPage = pathname === '/admin/login';
 
     const servicesTimeoutRef = useRef(null);
@@ -333,6 +337,73 @@ const Navbar = () => {
         }, 200);
     };
 
+    // Handle navigation to home page and scrolling to sections
+    const handleNavigation = (sectionId) => {
+        // If we're not on the home page, navigate to home page first
+        if (pathname !== '/') {
+            router.push('/');
+            
+            // Wait for navigation to complete, then scroll to section
+            setTimeout(() => {
+                scrollToSection(sectionId);
+            }, 100);
+        } else {
+            // If already on home page, just scroll to section
+            scrollToSection(sectionId);
+        }
+    };
+
+    // Handle service sub-navigation (scroll to specific service within Services section)
+    const handleServiceNavigation = (serviceId) => {
+        // If we're not on the home page, navigate to home page first
+        if (pathname !== '/') {
+            router.push('/');
+            
+            // Wait for navigation to complete, then scroll to service
+            setTimeout(() => {
+                scrollToService(serviceId);
+            }, 100);
+        } else {
+            // If already on home page, just scroll to service
+            scrollToService(serviceId);
+        }
+    };
+
+    // Scroll to specific section on home page
+    const scrollToSection = (sectionId) => {
+        setTimeout(() => {
+            const element = document.getElementById(sectionId);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 50);
+    };
+
+    // Scroll to specific service within Services section
+    const scrollToService = (serviceId) => {
+        setTimeout(() => {
+            // First scroll to the services section
+            const servicesSection = document.getElementById('services');
+            if (servicesSection) {
+                servicesSection.scrollIntoView({ behavior: 'smooth' });
+                
+                // Then highlight the specific service
+                setTimeout(() => {
+                    const serviceElement = document.getElementById(`service-${serviceId}`);
+                    if (serviceElement) {
+                        // Add a highlight animation
+                        serviceElement.classList.add('ring-2', 'ring-blue-500', 'scale-105');
+                        
+                        // Remove highlight after 2 seconds
+                        setTimeout(() => {
+                            serviceElement.classList.remove('ring-2', 'ring-blue-500', 'scale-105');
+                        }, 2000);
+                    }
+                }, 500);
+            }
+        }, 50);
+    };
+
     useEffect(() => {
         return () => {
             if (servicesTimeoutRef.current) {
@@ -378,28 +449,33 @@ const Navbar = () => {
 
                         {/* Centered Logo */}
                         <div className="absolute left-1/2 transform -translate-x-1/2">
-                            <Image
-                                src="/logo.png"
-                                alt="Logo"
-                                width={140}
-                                height={140}
-                                className="h-32 w-auto"
-                            />
+                            <button onClick={() => handleNavigation('hero')} className="cursor-pointer">
+                                <Image
+                                    src="/logo.png"
+                                    alt="Logo"
+                                    width={140}
+                                    height={140}
+                                    className="h-32 w-auto"
+                                />
+                            </button>
                         </div>
 
                         {/* Right Navigation */}
                         <div className="flex items-center space-x-6">
                             <nav className="flex items-center space-x-6">
-                                <Link href="/" className="text-white hover:text-blue-200 transition">
+                                <button onClick={() => handleNavigation('hero')} className="text-white hover:text-blue-200 transition">
                                     {translations.home}
-                                </Link>
+                                </button>
 
                                 <div
                                     className="relative group"
                                     onMouseEnter={handleServicesMouseEnter}
                                     onMouseLeave={handleServicesMouseLeave}
                                 >
-                                    <button className="text-white hover:text-blue-200 transition flex items-center">
+                                    <button 
+                                        onClick={() => handleNavigation('services')}
+                                        className="text-white hover:text-blue-200 transition flex items-center"
+                                    >
                                         {translations.services}
                                         <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
@@ -410,29 +486,30 @@ const Navbar = () => {
                                         onMouseEnter={handleServicesMouseEnter}
                                         onMouseLeave={handleServicesMouseLeave}
                                     >
-                                        <Link href="/plans" className="block px-4 py-2 text-gray-800 hover:bg-blue-100">
+                                        <button onClick={() => handleServiceNavigation('plans')} className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-blue-100">
                                             {translations.plans}
-                                        </Link>
-                                        <Link href="/transportation" className="block px-4 py-2 text-gray-800 hover:bg-blue-100">
+                                        </button>
+                                        <button onClick={() => handleServiceNavigation('transportation')} className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-blue-100">
                                             {translations.transportation}
-                                        </Link>
-                                        <Link href="/hotels" className="block px-4 py-2 text-gray-800 hover:bg-blue-100">
+                                        </button>
+                                        <button onClick={() => handleServiceNavigation('hotels')} className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-blue-100">
                                             {translations.hotels}
-                                        </Link>
-                                        <Link href="/residence" className="block px-4 py-2 text-gray-800 hover:bg-blue-100">
+                                        </button>
+                                        <button onClick={() => handleServiceNavigation('residence')} className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-blue-100">
                                             {translations.residence}
-                                        </Link>
+                                        </button>
                                     </div>
                                 </div>
-
-
 
                                 <div
                                     className="relative group"
                                     onMouseEnter={handleRussiaMouseEnter}
                                     onMouseLeave={handleRussiaMouseLeave}
                                 >
-                                    <button className="text-white hover:text-blue-200 transition flex items-center">
+                                    <button 
+                                        onClick={() => handleNavigation('get-to-know-russia')}
+                                        className="text-white hover:text-blue-200 transition flex items-center"
+                                    >
                                         {translations.getToKnowRussia}
                                         <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
@@ -443,32 +520,30 @@ const Navbar = () => {
                                         onMouseEnter={handleRussiaMouseEnter}
                                         onMouseLeave={handleRussiaMouseLeave}
                                     >
-                                        <Link href="/restaurants" className="block px-4 py-2 text-gray-800 hover:bg-blue-100">
+                                        <button onClick={() => handleNavigation('get-to-know-russia')} className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-blue-100">
                                             {translations.restaurants}
-                                        </Link>
-                                        <Link href="/attractions" className="block px-4 py-2 text-gray-800 hover:bg-blue-100">
+                                        </button>
+                                        <button onClick={() => handleNavigation('get-to-know-russia')} className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-blue-100">
                                             {translations.touristAttractions}
-                                        </Link>
-                                        <Link href="/events" className="block px-4 py-2 text-gray-800 hover:bg-blue-100">
+                                        </button>
+                                        <button onClick={() => handleNavigation('get-to-know-russia')} className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-blue-100">
                                             {translations.events}
-                                        </Link>
-                                        <Link href="/shopping" className="block px-4 py-2 text-gray-800 hover:bg-blue-100">
+                                        </button>
+                                        <button onClick={() => handleNavigation('get-to-know-russia')} className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-blue-100">
                                             {translations.shopping}
-                                        </Link>
-                                        <Link href="/museums" className="block px-4 py-2 text-gray-800 hover:bg-blue-100">
+                                        </button>
+                                        <button onClick={() => handleNavigation('get-to-know-russia')} className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-blue-100">
                                             {translations.museums}
-                                        </Link>
-                                        <Link href="/natural-places" className="block px-4 py-2 text-gray-800 hover:bg-blue-100">
+                                        </button>
+                                        <button onClick={() => handleNavigation('get-to-know-russia')} className="block w-full text-left px-4 py-2 text-gray-800 hover:bg-blue-100">
                                             {translations.naturalPlaces}
-                                        </Link>
+                                        </button>
                                     </div>
                                 </div>
 
-
-                                <Link href="/contact" className="text-white hover:text-blue-200 transition">
+                                <button onClick={() => handleNavigation('contact')} className="text-white hover:text-blue-200 transition">
                                     {translations.contact}
-                                </Link>
-
+                                </button>
                             </nav>
 
                             <button
@@ -492,13 +567,15 @@ const Navbar = () => {
                         </div>
 
                         <div className="flex items-center justify-center h-full flex-1">
-                            <Image
-                                src="/logo.png"
-                                alt="Logo"
-                                width={100}
-                                height={100}
-                                className="h-10 w-auto"
-                            />
+                            <button onClick={() => handleNavigation('hero')} className="cursor-pointer">
+                                <Image
+                                    src="/logo.png"
+                                    alt="Logo"
+                                    width={100}
+                                    height={100}
+                                    className="h-10 w-auto"
+                                />
+                            </button>
                         </div>
 
                         <div className="flex items-center h-full">
@@ -529,7 +606,9 @@ const Navbar = () => {
                 onClose={() => setMobileSidebarOpen(false)}
                 setSocialModalOpen={setSocialModalOpen}
                 setLocationModalOpen={setLocationModalOpen}
-                isLoggedIn={isLoggedIn} // Pass login status to mobile sidebar
+                isLoggedIn={isLoggedIn}
+                handleNavigation={handleNavigation}
+                handleServiceNavigation={handleServiceNavigation}
             />
         </>
     );
