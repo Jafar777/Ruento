@@ -1,15 +1,25 @@
 // app/components/BlogSection.jsx
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useLanguage } from '../context/LanguageContext';
 import { FaArrowRight, FaCalendarAlt, FaUser } from 'react-icons/fa';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const BlogSection = () => {
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const { translations } = useLanguage();
+
+  // Create refs for elements to animate
+  const sectionRef = useRef(null);
+  const titleRef = useRef(null);
+  const blogCardsRef = useRef([]);
+  const ctaButtonRef = useRef(null);
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -27,6 +37,70 @@ const BlogSection = () => {
     fetchBlogs();
   }, []);
 
+  // Set up animations after data is loaded and component is mounted
+  useEffect(() => {
+    if (blogs.length === 0) return; // Wait until data is available
+
+    const ctx = gsap.context(() => {
+      // Animation for the main title
+      gsap.fromTo(titleRef.current, 
+        { opacity: 0, y: 50 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          scrollTrigger: {
+            trigger: titleRef.current,
+            start: 'top 80%',
+            toggleActions: 'play none none none',
+            markers: false,
+          }
+        }
+      );
+
+      // Animation for each blog card
+      blogCardsRef.current.forEach((cardRef, index) => {
+        if (!cardRef) return;
+        
+        gsap.fromTo(cardRef,
+          { opacity: 0, y: 50, scale: 0.95 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.8,
+            delay: index * 0.2, // Stagger the animations
+            scrollTrigger: {
+              trigger: cardRef,
+              start: 'top 85%',
+              toggleActions: 'play none none none',
+              markers: false,
+            }
+          }
+        );
+      });
+
+      // Animation for CTA button
+      gsap.fromTo(ctaButtonRef.current,
+        { opacity: 0, scale: 0.9 },
+        {
+          opacity: 1,
+          scale: 1,
+          duration: 0.8,
+          scrollTrigger: {
+            trigger: ctaButtonRef.current,
+            start: 'top 85%',
+            toggleActions: 'play none none none',
+            markers: false,
+          }
+        }
+      );
+    }, sectionRef);
+
+    // Clean up function
+    return () => ctx.revert();
+  }, [blogs]);
+
   if (loading) {
     return (
       <section className="py-16 px-4 bg-gradient-to-br from-blue-50 to-purple-50">
@@ -42,14 +116,14 @@ const BlogSection = () => {
   }
 
   return (
-    <section className="py-16 px-4 bg-gradient-to-br from-blue-50 to-purple-50 relative overflow-hidden">
+    <section ref={sectionRef} className="py-16 px-4 bg-gradient-to-br from-blue-50 to-purple-50 relative overflow-hidden">
       {/* Decorative elements */}
       <div className="absolute top-0 left-0 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
       <div className="absolute top-0 right-0 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
       <div className="absolute bottom-0 left-1/2 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
 
       <div className="container mx-auto relative z-10">
-        <div className="text-center mb-16">
+        <div ref={titleRef} className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
             {translations.latestFromBlog || 'Latest From Our Blog'}
           </h2>
@@ -60,9 +134,10 @@ const BlogSection = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-12">
-          {blogs.map((blog) => (
+          {blogs.map((blog, index) => (
             <div 
-              key={blog._id} 
+              key={blog._id}
+              ref={el => blogCardsRef.current[index] = el}
               className="bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
             >
               {blog.images.length > 0 && (
@@ -107,7 +182,7 @@ const BlogSection = () => {
           ))}
         </div>
 
-        <div className="text-center">
+        <div ref={ctaButtonRef} className="text-center">
           <Link
             href="/blog"
             className="inline-flex items-center bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-full font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105"

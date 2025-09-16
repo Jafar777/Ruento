@@ -1,14 +1,23 @@
 // app/components/Services.jsx
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import Image from 'next/image';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const Services = () => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const { translations } = useLanguage();
+
+  // Create refs for elements to animate
+  const sectionRef = useRef(null);
+  const titleRef = useRef(null);
+  const servicesRef = useRef([]);
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -25,6 +34,54 @@ const Services = () => {
 
     fetchServices();
   }, []);
+
+  // Set up animations after data is loaded and component is mounted
+  useEffect(() => {
+    if (services.length === 0) return; // Wait until data is available
+
+    const ctx = gsap.context(() => {
+      // Animation for the main title
+      gsap.fromTo(titleRef.current, 
+        { opacity: 0, y: 50 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          scrollTrigger: {
+            trigger: titleRef.current,
+            start: 'top 80%',
+            toggleActions: 'play none none none',
+            markers: false,
+          }
+        }
+      );
+
+      // Animation for each service card
+      servicesRef.current.forEach((serviceRef, index) => {
+        if (!serviceRef) return;
+        
+        gsap.fromTo(serviceRef,
+          { opacity: 0, y: 50, scale: 0.9 },
+          {
+            opacity: 1,
+            y: 0,
+            scale: 1,
+            duration: 0.8,
+            delay: index * 0.1, // Stagger the animations
+            scrollTrigger: {
+              trigger: serviceRef,
+              start: 'top 85%',
+              toggleActions: 'play none none none',
+              markers: false,
+            }
+          }
+        );
+      });
+    }, sectionRef);
+
+    // Clean up function
+    return () => ctx.revert();
+  }, [services]);
 
   if (loading) {
     return (
@@ -51,14 +108,14 @@ const Services = () => {
   };
 
   return (
-    <section className="py-16 px-4 bg-gradient-to-br from-blue-50 to-purple-50 relative overflow-hidden">
+    <section ref={sectionRef} className="py-16 px-4 bg-gradient-to-br from-blue-50 to-purple-50 relative overflow-hidden">
       {/* Decorative elements */}
       <div className="absolute top-0 left-0 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
       <div className="absolute top-0 right-0 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
       <div className="absolute bottom-0 left-1/2 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
 
       <div className="container mx-auto relative z-10">
-        <div className="text-center mb-16">
+        <div ref={titleRef} className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">
             {translations.ourServices || 'Our Services'}
           </h2>
@@ -72,8 +129,8 @@ const Services = () => {
           {services.map((service, index) => (
             <div 
               key={service.type} 
+              ref={el => servicesRef.current[index] = el}
               className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
-              style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="text-center mb-6">
                 <div className="text-5xl mb-4">{serviceIcons[service.type]}</div>

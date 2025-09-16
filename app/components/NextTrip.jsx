@@ -1,15 +1,27 @@
 // app/components/NextTrip.jsx
 'use client'
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { FaCalendarAlt, FaMapMarkerAlt, FaChevronLeft, FaChevronRight } from 'react-icons/fa';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const NextTrip = () => {
   const [tripData, setTripData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { translations } = useLanguage();
+
+  const sectionRef = useRef(null);
+  const titleRef = useRef(null);
+  const carouselRef = useRef(null);
+  const countdownRef = useRef(null);
+  const destinationsRef = useRef(null);
+  const descriptionRef = useRef(null);
+  const ctaRef = useRef(null);
 
   useEffect(() => {
     const fetchTripData = async () => {
@@ -26,6 +38,112 @@ const NextTrip = () => {
 
     fetchTripData();
   }, []);
+
+  // Set up animations after data is loaded and component is mounted
+  useEffect(() => {
+    if (!tripData) return; // Wait until data is available
+
+    const ctx = gsap.context(() => {
+      // Animation for the main title
+      gsap.fromTo(titleRef.current, 
+        { opacity: 0, y: 50 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 1,
+          scrollTrigger: {
+            trigger: titleRef.current,
+            start: 'top 80%',
+            toggleActions: 'play none none none', // Only play on enter
+            markers: false,
+          }
+        }
+      );
+
+      // Animation for the image carousel
+      gsap.fromTo(carouselRef.current,
+        { opacity: 0, x: -100 },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 1,
+          scrollTrigger: {
+            trigger: carouselRef.current,
+            start: 'top 80%',
+            toggleActions: 'play none none none',
+            markers: false,
+          }
+        }
+      );
+
+      // Animation for countdown section
+      gsap.fromTo(countdownRef.current,
+        { opacity: 0, y: 50 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          scrollTrigger: {
+            trigger: countdownRef.current,
+            start: 'top 85%',
+            toggleActions: 'play none none none',
+            markers: false,
+          }
+        }
+      );
+
+      // Animation for destinations section
+      gsap.fromTo(destinationsRef.current,
+        { opacity: 0, y: 50 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          scrollTrigger: {
+            trigger: destinationsRef.current,
+            start: 'top 85%',
+            toggleActions: 'play none none none',
+            markers: false,
+          }
+        }
+      );
+
+      // Animation for description section
+      gsap.fromTo(descriptionRef.current,
+        { opacity: 0, y: 50 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          scrollTrigger: {
+            trigger: descriptionRef.current,
+            start: 'top 85%',
+            toggleActions: 'play none none none',
+            markers: false,
+          }
+        }
+      );
+
+      // Animation for CTA button
+      gsap.fromTo(ctaRef.current,
+        { opacity: 0, scale: 0.8 },
+        {
+          opacity: 1,
+          scale: 1,
+          duration: 0.8,
+          scrollTrigger: {
+            trigger: ctaRef.current,
+            start: 'top 85%',
+            toggleActions: 'play none none none',
+            markers: false,
+          }
+        }
+      );
+    }, sectionRef);
+
+    // Clean up function
+    return () => ctx.revert();
+  }, [tripData]);
 
   const nextImage = () => {
     if (!tripData?.images?.length) return;
@@ -80,7 +198,7 @@ const NextTrip = () => {
   const daysUntilTrip = calculateDaysUntilTrip();
 
   return (
-    <section className="relative py-16 px-4 bg-gradient-to-br from-blue-900 to-purple-900 text-white overflow-hidden">
+    <section ref={sectionRef} className="relative py-16 px-4 bg-gradient-to-br from-blue-900 to-purple-900 text-white overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute top-0 left-0 w-full h-full opacity-10">
         <div className="absolute top-10 left-10 w-72 h-72 bg-blue-500 rounded-full mix-blend-soft-light filter blur-xl animate-pulse"></div>
@@ -89,7 +207,7 @@ const NextTrip = () => {
 
       <div className="container mx-auto relative z-10">
         {/* Big "Our Next Trip" Title */}
-        <div className="text-center mb-16">
+        <div ref={titleRef} className="text-center mb-16">
           <h1 className="text-5xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300">
             {translations.ournexttrip || 'Our Next Trip'}
           </h1>
@@ -101,7 +219,7 @@ const NextTrip = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Image Carousel */}
-          <div className="relative h-96 lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
+          <div ref={carouselRef} className="relative h-96 lg:h-[500px] rounded-2xl overflow-hidden shadow-2xl">
             {tripData.images && tripData.images.length > 0 ? (
               <>
                 <img 
@@ -153,7 +271,7 @@ const NextTrip = () => {
           {/* Trip Information */}
           <div className="space-y-8">
             {/* Countdown */}
-            <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20">
+            <div ref={countdownRef} className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20">
               <h3 className="text-2xl font-semibold text-purple-600 mb-4 flex items-center">
                 <FaCalendarAlt className="mr-3 ml-3 text-blue-600" />
                 {translations.countdown || "Countdown to Adventure"}
@@ -176,7 +294,7 @@ const NextTrip = () => {
 
             {/* Destinations */}
             {tripData.places && tripData.places.length > 0 && (
-              <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20">
+              <div ref={destinationsRef} className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20">
                 <h3 className="text-2xl text-purple-600 font-semibold mb-4 flex items-center">
                   <FaMapMarkerAlt className="mr-3 ml-3 text-red-600" />
                   {translations.destinations || "Destinations"}
@@ -196,14 +314,14 @@ const NextTrip = () => {
 
             {/* Description */}
             {tripData.description && (
-              <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20">
+              <div ref={descriptionRef} className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20">
                 <h3 className="text-2xl font-semibold mb-4 text-purple-600">{translations.tripDetails || "Trip Details"}</h3>
                 <p className="text-blue-500 leading-relaxed ">{tripData.description}</p>
               </div>
             )}
 
             {/* CTA Button */}
-            <div className="text-center lg:text-left">
+            <div ref={ctaRef} className="text-center lg:text-left">
               <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full font-semibold text-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
                 {translations.joinTrip || "Join This Trip"}
               </button>
