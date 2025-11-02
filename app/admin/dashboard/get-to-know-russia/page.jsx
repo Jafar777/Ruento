@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '../../../context/LanguageContext';
 import Navbar from '../../../components/Navbar';
-import { FaArrowLeft, FaPlus, FaTrash, FaSave, FaImage, FaUpload } from 'react-icons/fa';
+import { FaArrowLeft, FaPlus, FaTrash, FaSave, FaImage, FaUpload, FaBed, FaStar, FaMapMarkerAlt, FaPhone, FaGlobe } from 'react-icons/fa';
 
 const RussiaCategoriesManager = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -15,7 +15,8 @@ const RussiaCategoriesManager = () => {
     events: { items: [] },
     shopping: { items: [] },
     museums: { items: [] },
-    naturalPlaces: { items: [] }
+    naturalPlaces: { items: [] },
+    hotels: { items: [] } // Added hotels category
   });
   const [activeCategory, setActiveCategory] = useState('restaurants');
   const [loading, setLoading] = useState(true);
@@ -95,11 +96,23 @@ const RussiaCategoriesManager = () => {
       [category]: {
         items: [
           ...prev[category].items,
-          {
-            title: '',
-            description: '',
-            images: []
-          }
+          category === 'hotels' 
+            ? {
+                title: '',
+                description: '',
+                address: '',
+                phone: '',
+                website: '',
+                priceRange: '',
+                rating: '',
+                amenities: [],
+                images: []
+              }
+            : {
+                title: '',
+                description: '',
+                images: []
+              }
         ]
       }
     }));
@@ -120,6 +133,67 @@ const RussiaCategoriesManager = () => {
       newItems[index] = {
         ...newItems[index],
         [field]: value
+      };
+      
+      return {
+        ...prev,
+        [category]: {
+          items: newItems
+        }
+      };
+    });
+  };
+
+  // Special handler for hotel amenities
+  const updateHotelAmenity = (category, itemIndex, amenityIndex, value) => {
+    if (category !== 'hotels') return;
+    
+    setCategories(prev => {
+      const newItems = [...prev[category].items];
+      const amenities = [...newItems[itemIndex].amenities];
+      amenities[amenityIndex] = value;
+      
+      newItems[itemIndex] = {
+        ...newItems[itemIndex],
+        amenities
+      };
+      
+      return {
+        ...prev,
+        [category]: {
+          items: newItems
+        }
+      };
+    });
+  };
+
+  const addHotelAmenity = (category, itemIndex) => {
+    if (category !== 'hotels') return;
+    
+    setCategories(prev => {
+      const newItems = [...prev[category].items];
+      newItems[itemIndex] = {
+        ...newItems[itemIndex],
+        amenities: [...newItems[itemIndex].amenities, '']
+      };
+      
+      return {
+        ...prev,
+        [category]: {
+          items: newItems
+        }
+      };
+    });
+  };
+
+  const removeHotelAmenity = (category, itemIndex, amenityIndex) => {
+    if (category !== 'hotels') return;
+    
+    setCategories(prev => {
+      const newItems = [...prev[category].items];
+      newItems[itemIndex] = {
+        ...newItems[itemIndex],
+        amenities: newItems[itemIndex].amenities.filter((_, i) => i !== amenityIndex)
       };
       
       return {
@@ -240,7 +314,8 @@ const RussiaCategoriesManager = () => {
     { key: 'events', title: translations.events || 'Events', icon: '🎪' },
     { key: 'shopping', title: translations.shopping || 'Shopping', icon: '🛍️' },
     { key: 'museums', title: translations.museums || 'Museums', icon: '🏛️' },
-    { key: 'naturalPlaces', title: translations.naturalPlaces || 'Natural Places', icon: '🏞️' }
+    { key: 'naturalPlaces', title: translations.naturalPlaces || 'Natural Places', icon: '🏞️' },
+    { key: 'hotels', title: translations.hotels || 'Hotels', icon: '🏨' } // Added hotels
   ];
 
   return (
@@ -327,34 +402,190 @@ const RussiaCategoriesManager = () => {
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          {translations.title || 'Title'}
-                        </label>
-                        <input
-                          type="text"
-                          value={item.title}
-                          onChange={(e) => updateItem(activeCategory, itemIndex, 'title', e.target.value)}
-                          className="w-full p-3 bg-gray-700 rounded-md text-white"
-                          placeholder="Enter title"
-                        />
-                      </div>
+                    {/* Special form for hotels */}
+                    {activeCategory === 'hotels' ? (
+                      <div className="space-y-6">
+                        {/* Hotel Basic Information */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className="block text-sm font-medium mb-2 flex items-center">
+                              <FaBed className="mr-2" />
+                              {translations.hotelName || 'Hotel Name'}
+                            </label>
+                            <input
+                              type="text"
+                              value={item.title}
+                              onChange={(e) => updateItem(activeCategory, itemIndex, 'title', e.target.value)}
+                              className="w-full p-3 bg-gray-700 rounded-md text-white"
+                              placeholder="Enter hotel name"
+                            />
+                          </div>
 
-                      <div>
-                        <label className="block text-sm font-medium mb-2">
-                          {translations.description || 'Description'}
-                        </label>
-                        <textarea
-                          value={item.description}
-                          onChange={(e) => updateItem(activeCategory, itemIndex, 'description', e.target.value)}
-                          className="w-full p-3 bg-gray-700 rounded-md text-white"
-                          rows={3}
-                          placeholder="Enter description"
-                        />
-                      </div>
-                    </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2 flex items-center">
+                              <FaStar className="mr-2" />
+                              {translations.rating || 'Rating'}
+                            </label>
+                            <select
+                              value={item.rating}
+                              onChange={(e) => updateItem(activeCategory, itemIndex, 'rating', e.target.value)}
+                              className="w-full p-3 bg-gray-700 rounded-md text-white"
+                            >
+                              <option value="">Select rating</option>
+                              <option value="5">★★★★★ (5 Stars)</option>
+                              <option value="4">★★★★ (4 Stars)</option>
+                              <option value="3">★★★ (3 Stars)</option>
+                              <option value="2">★★ (2 Stars)</option>
+                              <option value="1">★ (1 Star)</option>
+                            </select>
+                          </div>
+                        </div>
 
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className="block text-sm font-medium mb-2 flex items-center">
+                              <FaMapMarkerAlt className="mr-2" />
+                              {translations.address || 'Address'}
+                            </label>
+                            <input
+                              type="text"
+                              value={item.address}
+                              onChange={(e) => updateItem(activeCategory, itemIndex, 'address', e.target.value)}
+                              className="w-full p-3 bg-gray-700 rounded-md text-white"
+                              placeholder="Enter hotel address"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium mb-2 flex items-center">
+                              <FaPhone className="mr-2" />
+                              {translations.phone || 'Phone'}
+                            </label>
+                            <input
+                              type="text"
+                              value={item.phone}
+                              onChange={(e) => updateItem(activeCategory, itemIndex, 'phone', e.target.value)}
+                              className="w-full p-3 bg-gray-700 rounded-md text-white"
+                              placeholder="Enter phone number"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <label className="block text-sm font-medium mb-2 flex items-center">
+                              <FaGlobe className="mr-2" />
+                              {translations.website || 'Website'}
+                            </label>
+                            <input
+                              type="url"
+                              value={item.website}
+                              onChange={(e) => updateItem(activeCategory, itemIndex, 'website', e.target.value)}
+                              className="w-full p-3 bg-gray-700 rounded-md text-white"
+                              placeholder="https://example.com"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-medium mb-2">
+                              {translations.priceRange || 'Price Range'}
+                            </label>
+                            <select
+                              value={item.priceRange}
+                              onChange={(e) => updateItem(activeCategory, itemIndex, 'priceRange', e.target.value)}
+                              className="w-full p-3 bg-gray-700 rounded-md text-white"
+                            >
+                              <option value="">Select price range</option>
+                              <option value="$">$ (Budget)</option>
+                              <option value="$$">$$ (Moderate)</option>
+                              <option value="$$$">$$$ (Expensive)</option>
+                              <option value="$$$$">$$$$ (Luxury)</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            {translations.description || 'Description'}
+                          </label>
+                          <textarea
+                            value={item.description}
+                            onChange={(e) => updateItem(activeCategory, itemIndex, 'description', e.target.value)}
+                            className="w-full p-3 bg-gray-700 rounded-md text-white"
+                            rows={4}
+                            placeholder="Enter hotel description, facilities, and special features"
+                          />
+                        </div>
+
+                        {/* Hotel Amenities */}
+                        <div>
+                          <div className="flex justify-between items-center mb-4">
+                            <label className="block text-sm font-medium">
+                              {translations.amenities || 'Amenities'}
+                            </label>
+                            <button
+                              type="button"
+                              onClick={() => addHotelAmenity(activeCategory, itemIndex)}
+                              className="bg-blue-600 text-white py-1 px-3 rounded text-sm hover:bg-blue-700"
+                            >
+                              + Add Amenity
+                            </button>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            {item.amenities.map((amenity, amenityIndex) => (
+                              <div key={amenityIndex} className="flex gap-2">
+                                <input
+                                  type="text"
+                                  value={amenity}
+                                  onChange={(e) => updateHotelAmenity(activeCategory, itemIndex, amenityIndex, e.target.value)}
+                                  className="flex-1 p-2 bg-gray-700 rounded-md text-white"
+                                  placeholder="e.g., Free WiFi, Swimming Pool, Spa, etc."
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => removeHotelAmenity(activeCategory, itemIndex, amenityIndex)}
+                                  className="bg-red-600 text-white p-2 rounded hover:bg-red-700"
+                                >
+                                  <FaTrash size={12} />
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Standard form for other categories */
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            {translations.title || 'Title'}
+                          </label>
+                          <input
+                            type="text"
+                            value={item.title}
+                            onChange={(e) => updateItem(activeCategory, itemIndex, 'title', e.target.value)}
+                            className="w-full p-3 bg-gray-700 rounded-md text-white"
+                            placeholder="Enter title"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-medium mb-2">
+                            {translations.description || 'Description'}
+                          </label>
+                          <textarea
+                            value={item.description}
+                            onChange={(e) => updateItem(activeCategory, itemIndex, 'description', e.target.value)}
+                            className="w-full p-3 bg-gray-700 rounded-md text-white"
+                            rows={3}
+                            placeholder="Enter description"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Images Section - Common for all categories */}
                     <div className="mb-6">
                       <label className="block text-sm font-medium mb-2">
                         {translations.images || 'Images'}

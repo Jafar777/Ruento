@@ -195,7 +195,8 @@ const GetToKnowRussia = ({id}) => {
     events: '🎪',
     shopping: '🛍️',
     museums: '🏛️',
-    naturalPlaces: '🏞️'
+    naturalPlaces: '🏞️',
+      hotels: '🏨'
   };
 
   const categoryTitles = {
@@ -204,7 +205,8 @@ const GetToKnowRussia = ({id}) => {
     events: translations.events || 'Events',
     shopping: translations.shopping || 'Shopping',
     museums: translations.museums || 'Museums',
-    naturalPlaces: translations.naturalPlaces || 'Natural Places'
+    naturalPlaces: translations.naturalPlaces || 'Natural Places',
+    hotels: translations.hotels || 'Hotels' 
   };
 
   return (
