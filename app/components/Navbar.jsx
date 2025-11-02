@@ -92,7 +92,7 @@ const LocationModal = ({ isOpen, onClose }) => {
 };
 
 // Mobile Sidebar Component - Updated to handle navigation
-const MobileSidebar = ({ isOpen, onClose, setSocialModalOpen, setLocationModalOpen, isLoggedIn, handleNavigation, handleServiceNavigation }) => {
+const MobileSidebar = ({ isOpen, onClose, setSocialModalOpen, setLocationModalOpen, handleNavigation, handleServiceNavigation, handleUserIconClick }) => {
     const sidebarRef = useRef();
     const { translations, toggleLanguage, currentLanguage } = useLanguage();
     const [showServices, setShowServices] = useState(false);
@@ -212,14 +212,13 @@ const MobileSidebar = ({ isOpen, onClose, setSocialModalOpen, setLocationModalOp
                         </nav>
 
                         <div className="mt-8 border-t pt-4">
-                            <Link
-                                href={isLoggedIn ? "/admin/dashboard" : "/admin/login"}
+                            <button
+                                onClick={handleUserIconClick}
                                 className="flex items-center space-x-2 text-gray-800 hover:text-blue-500 transition py-2 w-full"
-                                onClick={() => handleLinkClick()}
                             >
                                 <FaUser size={20} />
-                                <span>{isLoggedIn ? translations.dashboard : translations.adminLogin}</span>
-                            </Link>
+                                <span>Admin</span>
+                            </button>
                             <button
                                 onClick={() => { setSocialModalOpen(true); handleLinkClick(); }}
                                 className="flex items-center space-x-2 text-gray-800 hover:text-blue-500 transition py-2 w-full"
@@ -261,7 +260,6 @@ const Navbar = () => {
     const [servicesHovered, setServicesHovered] = useState(false);
     const [russiaHovered, setRussiaHovered] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
     const navbarRef = useRef();
     const { translations, toggleLanguage, currentLanguage } = useLanguage();
     const router = useRouter();
@@ -297,13 +295,6 @@ const Navbar = () => {
         return () => window.removeEventListener('scroll', handleScroll);
     }, [isMobile, isAdminLoginPage]);
 
-    // Check if user is logged in
-    useEffect(() => {
-        // Check for token in localStorage
-        const token = localStorage.getItem('token');
-        setIsLoggedIn(!!token);
-    }, []);
-
     useGSAP(() => {
         gsap.fromTo(navbarRef.current,
             { y: -100, opacity: 0 },
@@ -337,34 +328,33 @@ const Navbar = () => {
         }, 200);
     };
 
+    // SIMPLE: Just check localStorage directly on click
+    const handleUserIconClick = () => {
+
+            router.push('/admin/dashboard');
+
+    };
+
     // Handle navigation to home page and scrolling to sections
     const handleNavigation = (sectionId) => {
-        // If we're not on the home page, navigate to home page first
         if (pathname !== '/') {
             router.push('/');
-            
-            // Wait for navigation to complete, then scroll to section
             setTimeout(() => {
                 scrollToSection(sectionId);
             }, 100);
         } else {
-            // If already on home page, just scroll to section
             scrollToSection(sectionId);
         }
     };
 
     // Handle service sub-navigation (scroll to specific service within Services section)
     const handleServiceNavigation = (serviceId) => {
-        // If we're not on the home page, navigate to home page first
         if (pathname !== '/') {
             router.push('/');
-            
-            // Wait for navigation to complete, then scroll to service
             setTimeout(() => {
                 scrollToService(serviceId);
             }, 100);
         } else {
-            // If already on home page, just scroll to service
             scrollToService(serviceId);
         }
     };
@@ -382,19 +372,13 @@ const Navbar = () => {
     // Scroll to specific service within Services section
     const scrollToService = (serviceId) => {
         setTimeout(() => {
-            // First scroll to the services section
             const servicesSection = document.getElementById('services');
             if (servicesSection) {
                 servicesSection.scrollIntoView({ behavior: 'smooth' });
-                
-                // Then highlight the specific service
                 setTimeout(() => {
                     const serviceElement = document.getElementById(`service-${serviceId}`);
                     if (serviceElement) {
-                        // Add a highlight animation
                         serviceElement.classList.add('ring-2', 'ring-blue-500', 'scale-105');
-                        
-                        // Remove highlight after 2 seconds
                         setTimeout(() => {
                             serviceElement.classList.remove('ring-2', 'ring-blue-500', 'scale-105');
                         }, 2000);
@@ -428,11 +412,13 @@ const Navbar = () => {
                     <div className="hidden lg:flex items-center justify-between h-full almarai-regular">
                         {/* Left Icons */}
                         <div className="flex items-center space-x-4">
-                            <Link href={isLoggedIn ? "/admin/dashboard" : "/admin/login"}>
-                                <button className="text-white p-2 rounded-full hover:bg-blue-600 transition cursor-pointer">
-                                    <FaUser size={20} />
-                                </button>
-                            </Link>
+                            <button
+                                onClick={handleUserIconClick}
+                                className="text-white p-2 rounded-full hover:bg-blue-600 transition cursor-pointer"
+                                suppressHydrationWarning
+                            >
+                                <FaUser size={20} />
+                            </button>
                             <button
                                 onClick={() => setSocialModalOpen(true)}
                                 className="text-white p-2 rounded-full hover:bg-blue-600 transition cursor-pointer"
@@ -472,7 +458,7 @@ const Navbar = () => {
                                     onMouseEnter={handleServicesMouseEnter}
                                     onMouseLeave={handleServicesMouseLeave}
                                 >
-                                    <button 
+                                    <button
                                         onClick={() => handleNavigation('services')}
                                         className="text-white hover:text-blue-200 transition flex items-center"
                                     >
@@ -506,7 +492,7 @@ const Navbar = () => {
                                     onMouseEnter={handleRussiaMouseEnter}
                                     onMouseLeave={handleRussiaMouseLeave}
                                 >
-                                    <button 
+                                    <button
                                         onClick={() => handleNavigation('get-to-know-russia')}
                                         className="text-white hover:text-blue-200 transition flex items-center"
                                     >
@@ -606,9 +592,9 @@ const Navbar = () => {
                 onClose={() => setMobileSidebarOpen(false)}
                 setSocialModalOpen={setSocialModalOpen}
                 setLocationModalOpen={setLocationModalOpen}
-                isLoggedIn={isLoggedIn}
                 handleNavigation={handleNavigation}
                 handleServiceNavigation={handleServiceNavigation}
+                handleUserIconClick={handleUserIconClick}
             />
         </>
     );
