@@ -3,24 +3,20 @@
 const nextConfig = {
   // Image optimization configuration
   images: {
+    domains: ['res.cloudinary.com'],
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',
         port: '',
-        pathname: '/**', // This allows all paths from Cloudinary
-            unoptimized: true, // This disables Next.js image optimization for external images
-
+        pathname: '/**',
       },
     ],
   },
   
-  // API configuration
-  api: {
-    bodyParser: {
-      sizeLimit: '100mb',
-    },
-    responseLimit: false,
+  // Experimental features
+  experimental: {
+    serverComponentsExternalPackages: ['mongodb'],
   },
   
   // Webpack configuration
