@@ -226,11 +226,7 @@ const Services = ({ id }) => {
                   </p>
                 </div>
 
-                <div className="mt-6 text-center">
-                  <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-6 rounded-full font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105">
-                    {translations.learnMore || 'Learn More'}
-                  </button>
-                </div>
+
               </div>
             );
           })}

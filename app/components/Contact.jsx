@@ -33,7 +33,7 @@ const Contact = () => {
   useEffect(() => {
     const ctx = gsap.context(() => {
       // Animation for the main title - different entrance effect
-      gsap.fromTo(titleRef.current, 
+      gsap.fromTo(titleRef.current,
         { opacity: 0, scale: 0.8, rotation: -5 },
         {
           opacity: 1,
@@ -69,7 +69,7 @@ const Contact = () => {
       // Animation for contact items - staggered with a bounce effect
       contactItemsRef.current.forEach((itemRef, index) => {
         if (!itemRef) return;
-        
+
         gsap.fromTo(itemRef,
           { opacity: 0, y: 50 },
           {
@@ -124,7 +124,7 @@ const Contact = () => {
       // Animation for form fields - staggered with a fade and slight rotation
       formFieldsRef.current.forEach((fieldRef, index) => {
         if (!fieldRef) return;
-        
+
         gsap.fromTo(fieldRef,
           { opacity: 0, rotation: -2, y: 20 },
           {
@@ -177,7 +177,7 @@ const Contact = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Simulate form submission
     setTimeout(() => {
       setIsSubmitting(false);
@@ -188,7 +188,7 @@ const Contact = () => {
         subject: '',
         message: ''
       });
-      
+
       // Clear success message after 5 seconds
       setTimeout(() => {
         setSubmitMessage('');
@@ -220,7 +220,7 @@ const Contact = () => {
           <div ref={contactInfoRef} className="space-y-8">
             <div className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border text-purple-600 border-white border-opacity-20">
               <h3 className="text-2xl font-semibold mb-6">{translations.getInTouch || 'Get In Touch'}</h3>
-              
+
               <div className="space-y-6">
                 <div ref={el => contactItemsRef.current[0] = el} className="flex items-start">
                   <div className="bg-blue-500 p-3 rounded-full mr-4">
@@ -231,7 +231,7 @@ const Contact = () => {
                     <p className="">+1 (555) 123-4567</p>
                   </div>
                 </div>
-                
+
                 <div ref={el => contactItemsRef.current[1] = el} className="flex items-start">
                   <div className="bg-purple-500 p-3 rounded-full mr-4">
                     <FaEnvelope className="text-white" />
@@ -241,17 +241,9 @@ const Contact = () => {
                     <p className="">info@ruentotourism.com</p>
                   </div>
                 </div>
-                
-                <div ref={el => contactItemsRef.current[2] = el} className="flex items-start">
-                  <div className="bg-green-500 p-3 rounded-full mr-4">
-                    <FaMapMarkerAlt className="text-white" />
-                  </div>
-                  <div>
-                    <h4 className="font-semibold">{translations.address || 'Address'}</h4>
-                    <p className="">123 Tourism Street, Moscow, Russia</p>
-                  </div>
-                </div>
-                
+
+
+
                 <div ref={el => contactItemsRef.current[3] = el} className="flex items-start">
                   <div className="bg-orange-500 p-3 rounded-full mr-4">
                     <FaClock className="text-white" />
@@ -265,24 +257,19 @@ const Contact = () => {
             </div>
 
             {/* Map placeholder */}
-            <div ref={mapRef} className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border text-purple-600 border-white border-opacity-20">
-              <h3 className="text-2xl font-semibold mb-4">{translations.visitUs || 'Visit Us'}</h3>
-              <div className="aspect-video bg-gray-700 rounded-lg flex items-center justify-center">
-                <p className="text-blue-100">{translations.mapPlaceholder || 'Interactive map would appear here'}</p>
-              </div>
-            </div>
+
           </div>
 
           {/* Contact Form */}
           <div ref={formRef} className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl text-purple-600 p-6 border border-white border-opacity-20">
             <h3 className="text-2xl font-semibold mb-6">{translations.sendMessage || 'Send us a Message'}</h3>
-            
+
             {submitMessage && (
               <div className="bg-green-800 text-black p-4 rounded-md mb-6">
                 {submitMessage}
               </div>
             )}
-            
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div ref={el => formFieldsRef.current[0] = el}>
@@ -298,7 +285,7 @@ const Contact = () => {
                     required
                   />
                 </div>
-                
+
                 <div ref={el => formFieldsRef.current[1] = el}>
                   <label className="block text-sm font-medium mb-2">
                     {translations.yourEmail || 'Your Email'} *
@@ -313,7 +300,7 @@ const Contact = () => {
                   />
                 </div>
               </div>
-              
+
               <div ref={el => formFieldsRef.current[2] = el}>
                 <label className="block text-sm font-medium mb-2">
                   {translations.subject || 'Subject'} *
@@ -327,7 +314,7 @@ const Contact = () => {
                   required
                 />
               </div>
-              
+
               <div ref={el => formFieldsRef.current[3] = el}>
                 <label className="block text-sm font-medium mb-2">
                   {translations.message || 'Message'} *
@@ -341,7 +328,7 @@ const Contact = () => {
                   required
                 ></textarea>
               </div>
-              
+
               <button
                 type="submit"
                 disabled={isSubmitting}
