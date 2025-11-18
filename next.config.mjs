@@ -9,6 +9,8 @@ const nextConfig = {
         hostname: 'res.cloudinary.com',
         port: '',
         pathname: '/**', // This allows all paths from Cloudinary
+            unoptimized: true, // This disables Next.js image optimization for external images
+
       },
     ],
   },

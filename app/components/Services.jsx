@@ -3,18 +3,17 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import Image from 'next/image';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const Services = ({id}) => {
+const Services = ({ id }) => {
   const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentImageIndex, setCurrentImageIndex] = useState({});
   const { translations } = useLanguage();
 
-  // Create refs for elements to animate
   const sectionRef = useRef(null);
   const titleRef = useRef(null);
   const servicesRef = useRef([]);
@@ -24,7 +23,16 @@ const Services = ({id}) => {
       try {
         const response = await fetch('/api/services');
         const data = await response.json();
-        setServices(data);
+        console.log('Fetched services:', data); // Debug log
+        setServices(data || []);
+        
+        // Initialize image indexes
+        const indexes = {};
+        data.forEach(service => {
+          const serviceId = service._id || service.type || Math.random().toString();
+          indexes[serviceId] = 0;
+        });
+        setCurrentImageIndex(indexes);
       } catch (error) {
         console.error('Error fetching services:', error);
       } finally {
@@ -35,12 +43,10 @@ const Services = ({id}) => {
     fetchServices();
   }, []);
 
-  // Set up animations after data is loaded and component is mounted
   useEffect(() => {
-    if (services.length === 0) return; // Wait until data is available
+    if (services.length === 0) return;
 
     const ctx = gsap.context(() => {
-      // Animation for the main title
       gsap.fromTo(titleRef.current, 
         { opacity: 0, y: 50 },
         {
@@ -56,7 +62,6 @@ const Services = ({id}) => {
         }
       );
 
-      // Animation for each service card
       servicesRef.current.forEach((serviceRef, index) => {
         if (!serviceRef) return;
         
@@ -67,7 +72,7 @@ const Services = ({id}) => {
             y: 0,
             scale: 1,
             duration: 0.8,
-            delay: index * 0.1, // Stagger the animations
+            delay: index * 0.1,
             scrollTrigger: {
               trigger: serviceRef,
               start: 'top 85%',
@@ -79,9 +84,41 @@ const Services = ({id}) => {
       });
     }, sectionRef);
 
-    // Clean up function
     return () => ctx.revert();
   }, [services]);
+
+  const nextImage = (serviceId) => {
+    const service = services.find(s => (s._id || s.type || '') === serviceId);
+    if (!service || !service.images || service.images.length <= 1) return;
+    
+    setCurrentImageIndex(prev => ({
+      ...prev,
+      [serviceId]: (prev[serviceId] + 1) % service.images.length
+    }));
+  };
+
+  const prevImage = (serviceId) => {
+    const service = services.find(s => (s._id || s.type || '') === serviceId);
+    if (!service || !service.images || service.images.length <= 1) return;
+    
+    setCurrentImageIndex(prev => ({
+      ...prev,
+      [serviceId]: (prev[serviceId] - 1 + service.images.length) % service.images.length
+    }));
+  };
+
+  // Safe image URL check
+  const getSafeImageUrl = (url) => {
+    if (!url) return null;
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('//')) return `https:${url}`;
+    return url;
+  };
+
+  // Get service ID for keys and state management
+  const getServiceId = (service) => {
+    return service._id || service.type || `service-${Math.random()}`;
+  };
 
   if (loading) {
     return (
@@ -93,23 +130,8 @@ const Services = ({id}) => {
     );
   }
 
-  const serviceIcons = {
-    plans: '📋',
-    transportation: '🚗',
-    hotels: '🏨',
-    residence: '🏠'
-  };
-
-  const serviceTitles = {
-    plans: translations.plans || 'Travel Plans',
-    transportation: translations.transportation || 'Transportation',
-    hotels: translations.hotels || 'Hotels',
-    residence: translations.residence || 'Residence'
-  };
-
   return (
     <section id={id} ref={sectionRef} className="py-16 px-4 bg-gradient-to-br from-blue-50 to-purple-50 relative overflow-hidden">
-      {/* Decorative elements */}
       <div className="absolute top-0 left-0 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
       <div className="absolute top-0 right-0 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
       <div className="absolute bottom-0 left-1/2 w-72 h-72 bg-pink-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
@@ -125,48 +147,93 @@ const Services = ({id}) => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          {services.map((service, index) => (
-            <div 
-              key={service.type} 
-              ref={el => servicesRef.current[index] = el}
-              className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
-            >
-              <div className="text-center mb-6">
-                <div className="text-5xl mb-4">{serviceIcons[service.type]}</div>
-                <h3 className="text-2xl font-bold text-gray-800 mb-2">
-                  {serviceTitles[service.type]}
-                </h3>
-              </div>
-
-              {service.image && (
-                <div className="mb-6 rounded-xl overflow-hidden">
-                  <Image
-                    src={service.image}
-                    alt={service.title}
-                    width={300}
-                    height={200}
-                    className="w-full h-48 object-cover"
-                  />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {services.map((service, index) => {
+            const serviceId = getServiceId(service);
+            const currentIndex = currentImageIndex[serviceId] || 0;
+            const safeImages = (service.images || []).filter(img => getSafeImageUrl(img));
+            
+            return (
+              <div 
+                key={serviceId} 
+                ref={el => servicesRef.current[index] = el}
+                className="bg-white rounded-2xl p-6 shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+              >
+                <div className="text-center mb-6">
+                  <div className="text-5xl mb-4">{service.icon || '📋'}</div>
+                  <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                    {service.title || 'Service Title'}
+                  </h3>
                 </div>
-              )}
 
-              <div className="text-center">
-                <h4 className="text-xl font-semibold text-gray-800 mb-2">
-                  {service.title}
-                </h4>
-                <p className="text-gray-600 leading-relaxed">
-                  {service.description}
-                </p>
-              </div>
+                {safeImages.length > 0 && (
+                  <div className="mb-6 rounded-xl overflow-hidden relative">
+                    {/* Use regular img tag instead of Next.js Image to avoid optimization issues */}
+                    <img
+                      src={getSafeImageUrl(safeImages[currentIndex])}
+                      alt={service.title || 'Service Image'}
+                      className="w-full h-48 object-cover"
+                      onError={(e) => {
+                        console.error('Image failed to load:', e.target.src);
+                        e.target.style.display = 'none';
+                      }}
+                    />
+                    
+                    {/* Image Navigation */}
+                    {safeImages.length > 1 && (
+                      <>
+                        <button
+                          onClick={() => prevImage(serviceId)}
+                          className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-70 transition"
+                        >
+                          ‹
+                        </button>
+                        <button
+                          onClick={() => nextImage(serviceId)}
+                          className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-70 transition"
+                        >
+                          ›
+                        </button>
+                        
+                        {/* Dots Indicator */}
+                        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                          {safeImages.map((_, imgIndex) => (
+                            <button
+                              key={imgIndex}
+                              onClick={() => setCurrentImageIndex(prev => ({
+                                ...prev,
+                                [serviceId]: imgIndex
+                              }))}
+                              className={`w-2 h-2 rounded-full ${
+                                currentIndex === imgIndex 
+                                  ? 'bg-white' 
+                                  : 'bg-white bg-opacity-50'
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
 
-              <div className="mt-6 text-center">
-                <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-6 rounded-full font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105">
-                  {translations.learnMore || 'Learn More'}
-                </button>
+                <div className="text-center">
+                  <h4 className="text-xl font-semibold text-gray-800 mb-2">
+                    {service.title || 'Service Title'}
+                  </h4>
+                  <p className="text-gray-600 leading-relaxed min-h-[80px]">
+                    {service.description || 'Service description will appear here.'}
+                  </p>
+                </div>
+
+                <div className="mt-6 text-center">
+                  <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-6 rounded-full font-semibold hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105">
+                    {translations.learnMore || 'Learn More'}
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {services.length === 0 && (
