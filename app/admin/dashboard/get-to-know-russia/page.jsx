@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '../../../context/LanguageContext';
 import Navbar from '../../../components/Navbar';
-import { FaArrowLeft, FaPlus, FaTrash, FaSave, FaImage, FaUpload, FaBed, FaStar, FaMapMarkerAlt, FaPhone, FaGlobe } from 'react-icons/fa';
+import { FaArrowLeft, FaPlus, FaTrash, FaSave, FaImage, FaUpload, FaBed, FaStar, FaMapMarkerAlt, FaPhone, FaGlobe, FaWifi, FaSwimmingPool, FaCar, FaUtensils, FaDumbbell, FaPaw, FaTv, FaSnowflake, FaShower } from 'react-icons/fa';
 
 const RussiaCategoriesManager = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -16,7 +16,7 @@ const RussiaCategoriesManager = () => {
     shopping: { items: [] },
     museums: { items: [] },
     naturalPlaces: { items: [] },
-    hotels: { items: [] } // Added hotels category
+    hotels: { items: [] }
   });
   const [activeCategory, setActiveCategory] = useState('restaurants');
   const [loading, setLoading] = useState(true);
@@ -25,8 +25,21 @@ const RussiaCategoriesManager = () => {
   const { translations } = useLanguage();
   const router = useRouter();
 
+  // Common hotel amenities with icons
+  const commonAmenities = [
+    { value: 'free-wifi', label: 'Free WiFi', icon: <FaWifi /> },
+    { value: 'swimming-pool', label: 'Swimming Pool', icon: <FaSwimmingPool /> },
+    { value: 'spa', label: 'Spa', icon: <FaShower /> },
+    { value: 'fitness-center', label: 'Fitness Center', icon: <FaDumbbell /> },
+    { value: 'restaurant', label: 'Restaurant', icon: <FaUtensils /> },
+    { value: 'parking', label: 'Free Parking', icon: <FaCar /> },
+    { value: 'pet-friendly', label: 'Pet Friendly', icon: <FaPaw /> },
+    { value: 'air-conditioning', label: 'Air Conditioning', icon: <FaSnowflake /> },
+    { value: 'tv', label: 'TV', icon: <FaTv /> },
+    { value: 'breakfast', label: 'Free Breakfast', icon: <FaUtensils /> }
+  ];
+
   useEffect(() => {
-    // Check if admin is authenticated
     const token = localStorage.getItem('adminToken');
     if (!token) {
       router.push('/admin/login');
@@ -106,7 +119,8 @@ const RussiaCategoriesManager = () => {
                 priceRange: '',
                 rating: '',
                 amenities: [],
-                images: []
+                images: [],
+                features: []
               }
             : {
                 title: '',
@@ -144,38 +158,24 @@ const RussiaCategoriesManager = () => {
     });
   };
 
-  // Special handler for hotel amenities
-  const updateHotelAmenity = (category, itemIndex, amenityIndex, value) => {
+  const toggleHotelAmenity = (category, itemIndex, amenity) => {
     if (category !== 'hotels') return;
     
     setCategories(prev => {
       const newItems = [...prev[category].items];
-      const amenities = [...newItems[itemIndex].amenities];
-      amenities[amenityIndex] = value;
+      const currentAmenities = newItems[itemIndex].amenities || [];
       
-      newItems[itemIndex] = {
-        ...newItems[itemIndex],
-        amenities
-      };
-      
-      return {
-        ...prev,
-        [category]: {
-          items: newItems
-        }
-      };
-    });
-  };
-
-  const addHotelAmenity = (category, itemIndex) => {
-    if (category !== 'hotels') return;
-    
-    setCategories(prev => {
-      const newItems = [...prev[category].items];
-      newItems[itemIndex] = {
-        ...newItems[itemIndex],
-        amenities: [...newItems[itemIndex].amenities, '']
-      };
+      if (currentAmenities.includes(amenity)) {
+        newItems[itemIndex] = {
+          ...newItems[itemIndex],
+          amenities: currentAmenities.filter(a => a !== amenity)
+        };
+      } else {
+        newItems[itemIndex] = {
+          ...newItems[itemIndex],
+          amenities: [...currentAmenities, amenity]
+        };
+      }
       
       return {
         ...prev,
@@ -186,15 +186,19 @@ const RussiaCategoriesManager = () => {
     });
   };
 
-  const removeHotelAmenity = (category, itemIndex, amenityIndex) => {
-    if (category !== 'hotels') return;
+  const addCustomAmenity = (category, itemIndex, value) => {
+    if (category !== 'hotels' || !value.trim()) return;
     
     setCategories(prev => {
       const newItems = [...prev[category].items];
-      newItems[itemIndex] = {
-        ...newItems[itemIndex],
-        amenities: newItems[itemIndex].amenities.filter((_, i) => i !== amenityIndex)
-      };
+      const currentAmenities = newItems[itemIndex].amenities || [];
+      
+      if (!currentAmenities.includes(value.trim())) {
+        newItems[itemIndex] = {
+          ...newItems[itemIndex],
+          amenities: [...currentAmenities, value.trim()]
+        };
+      }
       
       return {
         ...prev,
@@ -229,7 +233,7 @@ const RussiaCategoriesManager = () => {
           newItems[itemIndex] = {
             ...newItems[itemIndex],
             images: [
-              ...newItems[itemIndex].images,
+              ...(newItems[itemIndex].images || []),
               {
                 url: data.secure_url,
                 title: '',
@@ -315,7 +319,7 @@ const RussiaCategoriesManager = () => {
     { key: 'shopping', title: translations.shopping || 'Shopping', icon: '🛍️' },
     { key: 'museums', title: translations.museums || 'Museums', icon: '🏛️' },
     { key: 'naturalPlaces', title: translations.naturalPlaces || 'Natural Places', icon: '🏞️' },
-    { key: 'hotels', title: translations.hotels || 'Hotels', icon: '🏨' } // Added hotels
+    { key: 'hotels', title: translations.hotels || 'Hotels', icon: '🏨' }
   ];
 
   return (
@@ -408,7 +412,7 @@ const RussiaCategoriesManager = () => {
                         {/* Hotel Basic Information */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div>
-                            <label className="block text-sm font-medium mb-2 flex items-center">
+                            <label className=" text-sm font-medium mb-2 flex items-center">
                               <FaBed className="mr-2" />
                               {translations.hotelName || 'Hotel Name'}
                             </label>
@@ -422,7 +426,7 @@ const RussiaCategoriesManager = () => {
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium mb-2 flex items-center">
+                            <label className=" text-sm font-medium mb-2 flex items-center">
                               <FaStar className="mr-2" />
                               {translations.rating || 'Rating'}
                             </label>
@@ -443,7 +447,7 @@ const RussiaCategoriesManager = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div>
-                            <label className="block text-sm font-medium mb-2 flex items-center">
+                            <label className=" text-sm font-medium mb-2 flex items-center">
                               <FaMapMarkerAlt className="mr-2" />
                               {translations.address || 'Address'}
                             </label>
@@ -457,7 +461,7 @@ const RussiaCategoriesManager = () => {
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium mb-2 flex items-center">
+                            <label className=" text-sm font-medium mb-2 flex items-center">
                               <FaPhone className="mr-2" />
                               {translations.phone || 'Phone'}
                             </label>
@@ -473,7 +477,7 @@ const RussiaCategoriesManager = () => {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div>
-                            <label className="block text-sm font-medium mb-2 flex items-center">
+                            <label className=" text-sm font-medium mb-2 flex items-center">
                               <FaGlobe className="mr-2" />
                               {translations.website || 'Website'}
                             </label>
@@ -523,35 +527,84 @@ const RussiaCategoriesManager = () => {
                             <label className="block text-sm font-medium">
                               {translations.amenities || 'Amenities'}
                             </label>
-                            <button
-                              type="button"
-                              onClick={() => addHotelAmenity(activeCategory, itemIndex)}
-                              className="bg-blue-600 text-white py-1 px-3 rounded text-sm hover:bg-blue-700"
-                            >
-                              + Add Amenity
-                            </button>
                           </div>
                           
-                          <div className="space-y-2">
-                            {item.amenities.map((amenity, amenityIndex) => (
-                              <div key={amenityIndex} className="flex gap-2">
+                          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
+                            {commonAmenities.map((amenity) => (
+                              <label key={amenity.value} className="flex items-center space-x-2 cursor-pointer">
                                 <input
-                                  type="text"
-                                  value={amenity}
-                                  onChange={(e) => updateHotelAmenity(activeCategory, itemIndex, amenityIndex, e.target.value)}
-                                  className="flex-1 p-2 bg-gray-700 rounded-md text-white"
-                                  placeholder="e.g., Free WiFi, Swimming Pool, Spa, etc."
+                                  type="checkbox"
+                                  checked={(item.amenities || []).includes(amenity.value)}
+                                  onChange={() => toggleHotelAmenity(activeCategory, itemIndex, amenity.value)}
+                                  className="rounded bg-gray-700 border-gray-600"
                                 />
-                                <button
-                                  type="button"
-                                  onClick={() => removeHotelAmenity(activeCategory, itemIndex, amenityIndex)}
-                                  className="bg-red-600 text-white p-2 rounded hover:bg-red-700"
-                                >
-                                  <FaTrash size={12} />
-                                </button>
-                              </div>
+                                <span className="flex items-center text-sm">
+                                  <span className="mr-1">{amenity.icon}</span>
+                                  {amenity.label}
+                                </span>
+                              </label>
                             ))}
                           </div>
+
+                          {/* Custom Amenities */}
+                          <div className="mt-4">
+                            <label className="block text-sm font-medium mb-2">
+                              Add Custom Amenity
+                            </label>
+                            <div className="flex gap-2">
+                              <input
+                                type="text"
+                                id={`custom-amenity-${itemIndex}`}
+                                className="flex-1 p-2 bg-gray-700 rounded-md text-white"
+                                placeholder="e.g., Rooftop Bar, Conference Room, etc."
+                              />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  const input = document.getElementById(`custom-amenity-${itemIndex}`);
+                                  addCustomAmenity(activeCategory, itemIndex, input.value);
+                                  input.value = '';
+                                }}
+                                className="bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700"
+                              >
+                                Add
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Selected Amenities Display */}
+                          {(item.amenities || []).length > 0 && (
+                            <div className="mt-4">
+                              <p className="text-sm font-medium mb-2">Selected Amenities:</p>
+                              <div className="flex flex-wrap gap-2">
+                                {(item.amenities || []).map((amenity, index) => {
+                                  const commonAmenity = commonAmenities.find(a => a.value === amenity);
+                                  return (
+                                    <span
+                                      key={index}
+                                      className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm flex items-center"
+                                    >
+                                      {commonAmenity ? (
+                                        <>
+                                          <span className="mr-1">{commonAmenity.icon}</span>
+                                          {commonAmenity.label}
+                                        </>
+                                      ) : (
+                                        amenity
+                                      )}
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleHotelAmenity(activeCategory, itemIndex, amenity)}
+                                        className="ml-2 hover:text-red-300"
+                                      >
+                                        ×
+                                      </button>
+                                    </span>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ) : (
@@ -602,7 +655,7 @@ const RussiaCategoriesManager = () => {
                         />
                       </label>
 
-                      {item.images.length > 0 && (
+                      {item.images && item.images.length > 0 && (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                           {item.images.map((image, imageIndex) => (
                             <div key={imageIndex} className="bg-gray-700 rounded-lg p-4 relative">

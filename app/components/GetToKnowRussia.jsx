@@ -4,7 +4,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import Image from 'next/image';
-import { FaChevronLeft, FaChevronRight, FaMapMarkerAlt, FaClock, FaTicketAlt } from 'react-icons/fa';
+import { FaChevronLeft, FaChevronRight, FaMapMarkerAlt, FaClock, FaTicketAlt, FaStar, FaPhone, FaGlobe, FaWifi, FaSwimmingPool, FaCar, FaUtensils, FaDumbbell, FaPaw, FaTv, FaSnowflake, FaShower, FaBed } from 'react-icons/fa';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -23,6 +23,33 @@ const GetToKnowRussia = ({id}) => {
   const categoryButtonsRef = useRef([]);
   const categoryContentRef = useRef(null);
   const itemCardsRef = useRef([]);
+
+  // Amenity icons mapping
+  const amenityIcons = {
+    'free-wifi': <FaWifi className="text-blue-500" />,
+    'swimming-pool': <FaSwimmingPool className="text-blue-500" />,
+    'spa': <FaShower className="text-purple-500" />,
+    'fitness-center': <FaDumbbell className="text-green-500" />,
+    'restaurant': <FaUtensils className="text-red-500" />,
+    'parking': <FaCar className="text-gray-500" />,
+    'pet-friendly': <FaPaw className="text-yellow-500" />,
+    'air-conditioning': <FaSnowflake className="text-cyan-500" />,
+    'tv': <FaTv className="text-purple-500" />,
+    'breakfast': <FaUtensils className="text-orange-500" />
+  };
+
+  const amenityLabels = {
+    'free-wifi': 'Free WiFi',
+    'swimming-pool': 'Swimming Pool',
+    'spa': 'Spa',
+    'fitness-center': 'Fitness Center',
+    'restaurant': 'Restaurant',
+    'parking': 'Free Parking',
+    'pet-friendly': 'Pet Friendly',
+    'air-conditioning': 'Air Conditioning',
+    'tv': 'TV',
+    'breakfast': 'Free Breakfast'
+  };
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -49,10 +76,9 @@ const GetToKnowRussia = ({id}) => {
 
   // Set up animations after data is loaded and component is mounted
   useEffect(() => {
-    if (categories.length === 0) return; // Wait until data is available
+    if (categories.length === 0) return;
 
     const ctx = gsap.context(() => {
-      // Animation for the main title
       gsap.fromTo(titleRef.current, 
         { opacity: 0, y: 50 },
         {
@@ -68,7 +94,6 @@ const GetToKnowRussia = ({id}) => {
         }
       );
 
-      // Animation for category buttons
       categoryButtonsRef.current.forEach((buttonRef, index) => {
         if (!buttonRef) return;
         
@@ -78,7 +103,7 @@ const GetToKnowRussia = ({id}) => {
             opacity: 1,
             y: 0,
             duration: 0.6,
-            delay: index * 0.1, // Stagger the animations
+            delay: index * 0.1,
             scrollTrigger: {
               trigger: buttonRef,
               start: 'top 85%',
@@ -89,7 +114,6 @@ const GetToKnowRussia = ({id}) => {
         );
       });
 
-      // Animation for category content
       gsap.fromTo(categoryContentRef.current,
         { opacity: 0, y: 50 },
         {
@@ -105,7 +129,6 @@ const GetToKnowRussia = ({id}) => {
         }
       );
 
-      // Animation for item cards (only for active category)
       if (itemCardsRef.current.length > 0) {
         itemCardsRef.current.forEach((cardRef, index) => {
           if (!cardRef) return;
@@ -117,7 +140,7 @@ const GetToKnowRussia = ({id}) => {
               y: 0,
               scale: 1,
               duration: 0.7,
-              delay: index * 0.1, // Stagger the animations
+              delay: index * 0.1,
               scrollTrigger: {
                 trigger: cardRef,
                 start: 'top 85%',
@@ -130,33 +153,8 @@ const GetToKnowRussia = ({id}) => {
       }
     }, sectionRef);
 
-    // Clean up function
     return () => ctx.revert();
-  }, [categories, activeCategory]); // Re-run when categories or activeCategory changes
-
-  const nextItem = (category) => {
-    setActiveItems(prev => {
-      const categoryData = categories.find(c => c.type === category);
-      if (!categoryData) return prev;
-      
-      return {
-        ...prev,
-        [category]: (prev[category] + 1) % categoryData.items.length
-      };
-    });
-  };
-
-  const prevItem = (category) => {
-    setActiveItems(prev => {
-      const categoryData = categories.find(c => c.type === category);
-      if (!categoryData) return prev;
-      
-      return {
-        ...prev,
-        [category]: (prev[category] - 1 + categoryData.items.length) % categoryData.items.length
-      };
-    });
-  };
+  }, [categories, activeCategory]);
 
   const nextImage = (category, itemIndex) => {
     setCategories(prev => {
@@ -179,6 +177,52 @@ const GetToKnowRussia = ({id}) => {
     });
   };
 
+  const prevImage = (category, itemIndex) => {
+    setCategories(prev => {
+      const newCategories = [...prev];
+      const categoryIndex = newCategories.findIndex(c => c.type === category);
+      if (categoryIndex === -1) return prev;
+      
+      const item = newCategories[categoryIndex].items[itemIndex];
+      if (!item.images || item.images.length <= 1) return prev;
+      
+      const currentImageIndex = item.currentImageIndex || 0;
+      const newImageIndex = (currentImageIndex - 1 + item.images.length) % item.images.length;
+      
+      newCategories[categoryIndex].items[itemIndex] = {
+        ...item,
+        currentImageIndex: newImageIndex
+      };
+      
+      return newCategories;
+    });
+  };
+
+  const renderStars = (rating) => {
+    return Array.from({ length: 5 }).map((_, i) => (
+      <span
+        key={i}
+        className={i < rating ? 'text-yellow-400' : 'text-gray-300'}
+      >
+        ★
+      </span>
+    ));
+  };
+
+  const renderPriceRange = (priceRange) => {
+    const ranges = {
+      '$': 'Budget',
+      '$$': 'Moderate',
+      '$$$': 'Expensive',
+      '$$$$': 'Luxury'
+    };
+    return (
+      <span className="font-semibold text-green-600">
+        {priceRange} • {ranges[priceRange]}
+      </span>
+    );
+  };
+
   if (loading) {
     return (
       <section className="py-16 px-4 bg-gradient-to-br from-blue-50 to-purple-50">
@@ -196,7 +240,7 @@ const GetToKnowRussia = ({id}) => {
     shopping: '🛍️',
     museums: '🏛️',
     naturalPlaces: '🏞️',
-      hotels: '🏨'
+    hotels: '🏨'
   };
 
   const categoryTitles = {
@@ -206,7 +250,7 @@ const GetToKnowRussia = ({id}) => {
     shopping: translations.shopping || 'Shopping',
     museums: translations.museums || 'Museums',
     naturalPlaces: translations.naturalPlaces || 'Natural Places',
-    hotels: translations.hotels || 'Hotels' 
+    hotels: translations.hotels || 'Hotels'
   };
 
   return (
@@ -262,12 +306,18 @@ const GetToKnowRussia = ({id}) => {
                   </p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div className={`grid gap-8 ${
+                  category.type === 'hotels' 
+                    ? 'grid-cols-1 lg:grid-cols-2 xl:grid-cols-3' 
+                    : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+                }`}>
                   {category.items.map((item, itemIndex) => (
                     <div
                       key={itemIndex}
                       ref={el => itemCardsRef.current[itemIndex] = el}
-                      className="bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2"
+                      className={`bg-white rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 ${
+                        category.type === 'hotels' ? 'h-full flex flex-col' : ''
+                      }`}
                     >
                       {/* Image Slider */}
                       <div className="relative h-64 overflow-hidden">
@@ -283,19 +333,7 @@ const GetToKnowRussia = ({id}) => {
                             {item.images.length > 1 && (
                               <>
                                 <button
-                                  onClick={() => {
-                                    const newCategories = [...categories];
-                                    const catIndex = newCategories.findIndex(c => c.type === category.type);
-                                    const currentImageIndex = newCategories[catIndex].items[itemIndex].currentImageIndex || 0;
-                                    const newImageIndex = (currentImageIndex - 1 + item.images.length) % item.images.length;
-                                    
-                                    newCategories[catIndex].items[itemIndex] = {
-                                      ...item,
-                                      currentImageIndex: newImageIndex
-                                    };
-                                    
-                                    setCategories(newCategories);
-                                  }}
+                                  onClick={() => prevImage(category.type, itemIndex)}
                                   className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 p-2 rounded-full text-white hover:bg-opacity-70 transition"
                                 >
                                   <FaChevronLeft />
@@ -328,43 +366,119 @@ const GetToKnowRussia = ({id}) => {
                       </div>
 
                       {/* Content */}
-                      <div className="p-6">
-                        <h3 className="text-xl font-bold text-gray-800 mb-2">{item.title}</h3>
-                        <p className="text-gray-600 mb-4">{item.description}</p>
-                        
-                        {/* Image Details */}
-                        {item.images && item.images.length > 0 && (
-                          <div className="mt-4">
-                            <h4 className="text-lg font-semibold text-gray-800 mb-2">
-                              {item.images[item.currentImageIndex || 0].title}
-                            </h4>
-                            <p className="text-gray-600 text-sm">
-                              {item.images[item.currentImageIndex || 0].description}
-                            </p>
+                      <div className={`p-6 ${category.type === 'hotels' ? 'flex-1 flex flex-col' : ''}`}>
+                        {/* Hotel Specific Content */}
+                        {category.type === 'hotels' ? (
+                          <div className="flex-1">
+                            {/* Hotel Header */}
+                            <div className="flex justify-between items-start mb-3">
+                              <h3 className="text-xl font-bold text-gray-800">{item.title}</h3>
+                              <div className="text-right">
+                                <div className="flex items-center justify-end mb-1">
+                                  {renderStars(parseInt(item.rating) || 0)}
+                                  <span className="ml-1 text-sm text-gray-600">({item.rating})</span>
+                                </div>
+                                <div className="text-lg font-semibold">
+                                  {renderPriceRange(item.priceRange)}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Contact Info */}
+                            <div className="space-y-2 mb-4">
+                              {item.address && (
+                                <div className="flex items-center text-sm text-gray-600">
+                                  <FaMapMarkerAlt className="mr-2 text-red-500" />
+                                  <span>{item.address}</span>
+                                </div>
+                              )}
+                              {item.phone && (
+                                <div className="flex items-center text-sm text-gray-600">
+                                  <FaPhone className="mr-2 text-green-500" />
+                                  <span>{item.phone}</span>
+                                </div>
+                              )}
+                              {item.website && (
+                                <div className="flex items-center text-sm">
+                                  <FaGlobe className="mr-2 text-blue-500" />
+                                  <a 
+                                    href={item.website} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-blue-600 hover:underline truncate"
+                                  >
+                                    {item.website.replace(/^https?:\/\//, '')}
+                                  </a>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Description */}
+                            <p className="text-gray-600 mb-4 text-sm">{item.description}</p>
+
+                            {/* Amenities */}
+                            {item.amenities && item.amenities.length > 0 && (
+                              <div className="mt-auto">
+                                <h4 className="text-sm font-semibold text-gray-800 mb-2">Amenities:</h4>
+                                <div className="grid grid-cols-2 gap-2">
+                                  {item.amenities.slice(0, 6).map((amenity, index) => (
+                                    <div key={index} className="flex items-center text-xs text-gray-600">
+                                      <span className="mr-1">
+                                        {amenityIcons[amenity] || <FaBed className="text-gray-400" />}
+                                      </span>
+                                      <span>{amenityLabels[amenity] || amenity}</span>
+                                    </div>
+                                  ))}
+                                  {item.amenities.length > 6 && (
+                                    <div className="text-xs text-gray-500">
+                                      +{item.amenities.length - 6} more
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
+                        ) : (
+                          /* Standard Content for other categories */
+                          <>
+                            <h3 className="text-xl font-bold text-gray-800 mb-2">{item.title}</h3>
+                            <p className="text-gray-600 mb-4">{item.description}</p>
+                            
+                            {/* Image Details */}
+                            {item.images && item.images.length > 0 && (
+                              <div className="mt-4">
+                                <h4 className="text-lg font-semibold text-gray-800 mb-2">
+                                  {item.images[item.currentImageIndex || 0].title}
+                                </h4>
+                                <p className="text-gray-600 text-sm">
+                                  {item.images[item.currentImageIndex || 0].description}
+                                </p>
+                              </div>
+                            )}
+                            
+                            {/* Category-specific info */}
+                            <div className="mt-4 flex items-center text-sm text-gray-500">
+                              {category.type === 'events' && (
+                                <>
+                                  <FaClock className="mr-1" />
+                                  <span>Upcoming Event</span>
+                                </>
+                              )}
+                              {category.type === 'touristAttractions' && (
+                                <>
+                                  <FaMapMarkerAlt className="mr-1" />
+                                  <span>Popular Destination</span>
+                                </>
+                              )}
+                              {category.type === 'museums' && (
+                                <>
+                                  <FaTicketAlt className="mr-1" />
+                                  <span>Cultural Experience</span>
+                                </>
+                              )}
+                            </div>
+                          </>
                         )}
-                        
-                        {/* Category-specific info */}
-                        <div className="mt-4 flex items-center text-sm text-gray-500">
-                          {category.type === 'events' && (
-                            <>
-                              <FaClock className="mr-1" />
-                              <span>Upcoming Event</span>
-                            </>
-                          )}
-                          {category.type === 'touristAttractions' && (
-                            <>
-                              <FaMapMarkerAlt className="mr-1" />
-                              <span>Popular Destination</span>
-                            </>
-                          )}
-                          {category.type === 'museums' && (
-                            <>
-                              <FaTicketAlt className="mr-1" />
-                              <span>Cultural Experience</span>
-                            </>
-                          )}
-                        </div>
                       </div>
                     </div>
                   ))}
