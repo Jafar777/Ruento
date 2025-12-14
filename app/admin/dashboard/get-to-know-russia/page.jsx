@@ -103,34 +103,31 @@ const RussiaCategoriesManager = () => {
     }
   };
 
-  const addItem = (category) => {
-    setCategories(prev => ({
-      ...prev,
-      [category]: {
-        items: [
-          ...prev[category].items,
-          category === 'hotels' 
-            ? {
-                title: '',
-                description: '',
-                address: '',
-                phone: '',
-                website: '',
-                priceRange: '',
-                rating: '',
-                amenities: [],
-                images: [],
-                features: []
-              }
-            : {
-                title: '',
-                description: '',
-                images: []
-              }
-        ]
-      }
-    }));
-  };
+const addItem = (category) => {
+  setCategories(prev => ({
+    ...prev,
+    [category]: {
+      items: [
+        ...prev[category].items,
+        {
+          id: `${category}-${prev[category].items.length}-${Date.now()}`,
+          title: '',
+          description: '',
+          ...(category === 'hotels' ? {
+            address: '',
+            phone: '',
+            website: '',
+            priceRange: '',
+            rating: '',
+            amenities: [],
+          } : {}),
+          images: [],
+          features: []
+        }
+      ]
+    }
+  }));
+};
 
   const removeItem = (category, index) => {
     setCategories(prev => ({
