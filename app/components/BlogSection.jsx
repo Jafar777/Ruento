@@ -10,7 +10,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const BlogSection = () => {
+const BlogSection = ({ id }) => { // ADD THE id PROP HERE
   const [blogs, setBlogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const { translations } = useLanguage();
@@ -103,7 +103,7 @@ const BlogSection = () => {
 
   if (loading) {
     return (
-      <section className="py-16 px-4 bg-gradient-to-br from-blue-50 to-purple-50">
+      <section id={id} className="py-16 px-4 bg-gradient-to-br from-blue-50 to-purple-50"> {/* ADD id HERE */}
         <div className="container mx-auto text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mx-auto"></div>
         </div>
@@ -112,11 +112,17 @@ const BlogSection = () => {
   }
 
   if (blogs.length === 0) {
-    return null; // Don't show section if no blogs
+    return (
+      <section id={id} className="py-16 px-4 bg-gradient-to-br from-blue-50 to-purple-50"> {/* ADD id HERE */}
+        <div className="container mx-auto text-center">
+          <p>No blogs available</p>
+        </div>
+      </section>
+    );
   }
 
   return (
-    <section ref={sectionRef} className="py-16 px-4 bg-gradient-to-br from-blue-50 to-purple-50 relative overflow-hidden">
+    <section id={id} ref={sectionRef} className="py-16 px-4 bg-gradient-to-br from-blue-50 to-purple-50 relative overflow-hidden"> {/* ADD id HERE */}
       {/* Decorative elements */}
       <div className="absolute top-0 left-0 w-72 h-72 bg-blue-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
       <div className="absolute top-0 right-0 w-72 h-72 bg-purple-200 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>

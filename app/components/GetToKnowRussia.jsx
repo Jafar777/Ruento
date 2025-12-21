@@ -5,13 +5,9 @@ import { useLanguage } from '../context/LanguageContext';
 import Image from 'next/image';
 import Link from 'next/link';
 import { 
-  FaChevronLeft, 
-  FaChevronRight, 
+
   FaMapMarkerAlt, 
-  FaClock, 
   FaStar, 
-  FaPhone, 
-  FaGlobe, 
   FaWifi, 
   FaSwimmingPool, 
   FaCar, 
@@ -275,10 +271,7 @@ const GetToKnowRussia = ({ id }) => {
       
       <div className="container mx-auto relative z-10">
         <div ref={titleRef} className="text-center mb-20">
-          <div className="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full text-white text-sm font-medium mb-6">
-            <span className="mr-2">🇷🇺</span>
-            {translations.discoverRussia || 'Discover Russia'}
-          </div>
+
           <h2 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
             {translations.getToKnowRussia || 'Experience Russia'}
           </h2>
@@ -431,25 +424,11 @@ const GetToKnowRussia = ({ id }) => {
                             )}
                           </div>
 
-                          <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                            <div className="flex items-center space-x-3">
-                              <button 
-                                className="text-gray-400 hover:text-gray-600 transition-colors p-2"
-                                aria-label={translations.share || 'Share'}
-                              >
-                                <FaShare className="text-lg" />
-                              </button>
-                              <button 
-                                className="text-gray-400 hover:text-blue-600 transition-colors p-2"
-                                aria-label={translations.bookmark || 'Bookmark'}
-                              >
-                                <FaBookmark className="text-lg" />
-                              </button>
-                            </div>
+                          <div className="flex justify-center items-center pt-4 border-t border-gray-100">
                             
                             <Link
                               href={`/discover/${category.type}/${item.id}?slug=${item.slug}`}
-                              className="group/btn flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
+                              className="group/btn w-full flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"
                             >
                               <span className="font-medium">{translations.explore || 'Explore'}</span>
                               <FaArrowRight className="ml-2 group-hover/btn:translate-x-1 transition-transform duration-300" />

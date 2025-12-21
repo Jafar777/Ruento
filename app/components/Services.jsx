@@ -7,6 +7,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ChevronLeft, ChevronRight, Star, ArrowRight, Sparkles } from 'lucide-react';
+import { FaArrowRight } from 'react-icons/fa';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -15,8 +16,7 @@ const Services = ({ id }) => {
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState({});
   const [hoveredCard, setHoveredCard] = useState(null);
-  const { translations } = useLanguage();
-
+  const { translations, currentLanguage } = useLanguage(); // Fixed: Added currentLanguage
   const sectionRef = useRef(null);
   const titleRef = useRef(null);
   const cardsRef = useRef([]);
@@ -25,15 +25,27 @@ const Services = ({ id }) => {
     const fetchServices = async () => {
       try {
         const response = await fetch('/api/services');
-        const data = await response.json();
-        setServices(data || []);
-        
-        const indexes = {};
-        data.forEach(service => {
-          const serviceId = service._id || service.type || Math.random().toString();
-          indexes[serviceId] = 0;
-        });
-        setCurrentImageIndex(indexes);
+        if (response.ok) {
+          const data = await response.json();
+          setServices(data);
+          // REMOVED: setFilteredServices(data); - This line was causing the error
+        } else {
+          // If API fails, use minimal fallback
+          const fallbackServices = [
+            {
+              id: 1,
+              type: 'plans',
+              title: 'جولة روسيا الشاملة',
+              description: 'جولة شاملة لاستكشاف أفضل ما في روسيا',
+              icon: '📋',
+              price: 1999,
+              priceUnit: 'للشخص',
+              rating: 4.8
+            }
+          ];
+          setServices(fallbackServices);
+          // REMOVED: setFilteredServices(fallbackServices); - This line was causing the error
+        }
       } catch (error) {
         console.error('Error fetching services:', error);
       } finally {
@@ -48,7 +60,7 @@ const Services = ({ id }) => {
     if (services.length === 0) return;
 
     const ctx = gsap.context(() => {
-      gsap.fromTo(titleRef.current.querySelectorAll('.char'), 
+      gsap.fromTo(titleRef.current.querySelectorAll('.char'),
         { opacity: 0, y: 30, rotateX: 90 },
         {
           opacity: 1,
@@ -67,7 +79,7 @@ const Services = ({ id }) => {
 
       cardsRef.current.forEach((cardRef, index) => {
         if (!cardRef) return;
-        
+
         gsap.fromTo(cardRef,
           { opacity: 0, y: 80, scale: 0.8, rotationY: 15 },
           {
@@ -95,7 +107,7 @@ const Services = ({ id }) => {
     e.stopPropagation();
     const service = services.find(s => (s._id || s.type || '') === serviceId);
     if (!service || !service.images || service.images.length <= 1) return;
-    
+
     setCurrentImageIndex(prev => ({
       ...prev,
       [serviceId]: (prev[serviceId] + 1) % service.images.length
@@ -106,19 +118,19 @@ const Services = ({ id }) => {
     e.stopPropagation();
     const service = services.find(s => (s._id || s.type || '') === serviceId);
     if (!service || !service.images || service.images.length <= 1) return;
-    
+
     setCurrentImageIndex(prev => ({
       ...prev,
       [serviceId]: (prev[serviceId] - 1 + service.images.length) % service.images.length
     }));
   };
 
-  const getSafeImageUrl = (url) => {
-    if (!url) return null;
-    if (url.startsWith('http')) return url;
-    if (url.startsWith('//')) return `https:${url}`;
-    return url;
-  };
+const getSafeImageUrl = (url) => {
+  if (!url) return 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80';
+  if (url.startsWith('http')) return url;
+  if (url.startsWith('//')) return `https:${url}`;
+  return url;
+};
 
   const getServiceId = (service) => {
     return service._id || service.type || `service-${Math.random()}`;
@@ -126,7 +138,7 @@ const Services = ({ id }) => {
 
   const splitText = (text) => {
     return text.split('').map((char, i) => (
-      <span key={i} className="char inline-block" style={{ 
+      <span key={i} className="char inline-block" style={{
         transformStyle: 'preserve-3d',
         backfaceVisibility: 'hidden'
       }}>
@@ -173,24 +185,15 @@ const Services = ({ id }) => {
 
       <div className="container mx-auto relative z-10">
         <div ref={titleRef} className="text-center mb-20">
-          <div className="inline-flex items-center gap-2 mb-6 px-4 py-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-blue-500/20">
-            <Sparkles className="w-4 h-4 text-blue-400" />
-            <span className="text-sm font-semibold text-blue-300 uppercase tracking-wider">
-              {translations.premiumServices || 'Premium Services'}
-            </span>
-          </div>
-          
-          <h2 className="text-5xl md:text-7xl font-bold mb-8">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-blue-100 to-purple-100">
-              {splitText(translations.ourServices || 'Our Services')}
-            </span>
+          <h2 className="text-5xl md:text-6xl font-bold text-white mb-6">
+            {translations.ourServices || 'Our Services'}
           </h2>
-          
+
           <div className="relative inline-block">
             <div className="w-48 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto mb-6 rounded-full"></div>
             <div className="absolute inset-0 w-48 h-1 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto mb-6 rounded-full blur-sm"></div>
           </div>
-          
+
           <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
             {translations.servicesDescription || 'Discover our comprehensive travel services designed to make your Russian adventure unforgettable'}
           </p>
@@ -201,7 +204,7 @@ const Services = ({ id }) => {
             const serviceId = getServiceId(service);
             const currentIndex = currentImageIndex[serviceId] || 0;
             const safeImages = (service.images || []).filter(img => getSafeImageUrl(img));
-            
+
             return (
               <div
                 key={serviceId}
@@ -210,14 +213,13 @@ const Services = ({ id }) => {
                 onMouseEnter={() => setHoveredCard(serviceId)}
                 onMouseLeave={() => setHoveredCard(null)}
               >
-                <div className={`absolute inset-0 bg-gradient-to-br from-blue-500/20 via-transparent to-purple-500/20 rounded-3xl blur-xl transition-opacity duration-500 ${
-                  hoveredCard === serviceId ? 'opacity-100' : 'opacity-0'
-                }`}></div>
-                
+                <div className={`absolute inset-0 bg-gradient-to-br from-blue-500/20 via-transparent to-purple-500/20 rounded-3xl blur-xl transition-opacity duration-500 ${hoveredCard === serviceId ? 'opacity-100' : 'opacity-0'
+                  }`}></div>
+
                 <div className="relative bg-gray-800/40 backdrop-blur-xl border border-gray-700/50 rounded-3xl p-8 overflow-hidden transition-all duration-500 group-hover:scale-[1.02] group-hover:border-blue-500/30 group-hover:shadow-2xl group-hover:shadow-blue-500/10">
                   <div className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-blue-500/30 rounded-tl-3xl"></div>
                   <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-purple-500/30 rounded-br-3xl"></div>
-                  
+
                   <div className="relative z-10 flex items-center justify-between mb-8">
                     <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 border border-blue-500/20">
                       <div className="text-3xl">{service.icon || '✨'}</div>
@@ -237,9 +239,9 @@ const Services = ({ id }) => {
                           alt={service.title || 'Service Image'}
                           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         />
-                        
+
                         <div className="absolute inset-0 bg-gradient-to-t from-gray-900/60 via-transparent to-transparent"></div>
-                        
+
                         {safeImages.length > 1 && (
                           <>
                             <button
@@ -256,14 +258,14 @@ const Services = ({ id }) => {
                             </button>
                           </>
                         )}
-                        
+
                         {safeImages.length > 1 && (
                           <div className="absolute bottom-4 right-4 px-3 py-1 rounded-full bg-gray-900/80 backdrop-blur-sm border border-gray-700 text-sm text-white">
                             {currentIndex + 1} / {safeImages.length}
                           </div>
                         )}
                       </div>
-                      
+
                       {safeImages.length > 1 && (
                         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
                           {safeImages.map((_, imgIndex) => (
@@ -273,11 +275,10 @@ const Services = ({ id }) => {
                                 ...prev,
                                 [serviceId]: imgIndex
                               }))}
-                              className={`w-2 h-2 rounded-full transition-all ${
-                                currentIndex === imgIndex 
-                                  ? 'w-8 bg-gradient-to-r from-blue-500 to-purple-500' 
+                              className={`w-2 h-2 rounded-full transition-all ${currentIndex === imgIndex
+                                  ? 'w-8 bg-gradient-to-r from-blue-500 to-purple-500'
                                   : 'bg-gray-600 hover:bg-gray-400'
-                              }`}
+                                }`}
                             />
                           ))}
                         </div>
@@ -289,14 +290,13 @@ const Services = ({ id }) => {
                     <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-blue-300 transition-colors">
                       {service.title || translations.serviceTitle || 'Service Title'}
                     </h3>
-                    
+
                     <p className="text-gray-300 mb-8 leading-relaxed line-clamp-3">
                       {service.description || translations.serviceDescriptionDefault || 'Service description will appear here.'}
                     </p>
-                    
-                    {/* Updated CTA Button with Link */}
-                    <Link 
-                      href={`/services/${service._id || service.type}`}
+
+                    <Link
+                      href={`/services/${service.type}`}
                       className="group/btn w-full py-3 px-6 rounded-xl bg-gradient-to-r from-blue-600/20 to-purple-600/20 border border-blue-500/30 text-white font-semibold flex items-center justify-center gap-2 hover:from-blue-600/30 hover:to-purple-600/30 hover:border-blue-400/50 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/20"
                     >
                       <span>{translations.learnMore || 'Learn More'}</span>
@@ -304,9 +304,8 @@ const Services = ({ id }) => {
                     </Link>
                   </div>
 
-                  <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-transform duration-500 ${
-                    hoveredCard === serviceId ? 'scale-100' : 'scale-0'
-                  }`}></div>
+                  <div className={`absolute bottom-0 left-1/2 -translate-x-1/2 w-24 h-0.5 bg-gradient-to-r from-blue-500 to-purple-500 transition-transform duration-500 ${hoveredCard === serviceId ? 'scale-100' : 'scale-0'
+                    }`}></div>
                 </div>
               </div>
             );
@@ -326,6 +325,17 @@ const Services = ({ id }) => {
             </div>
           </div>
         )}
+
+        {/* "All Services" Button - Fixed with currentLanguage */}
+        <div className="text-center mt-20">
+          <Link 
+            href="/services"
+            className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-full hover:from-blue-700 hover:to-purple-700 transition-all duration-300 hover:scale-105 shadow-lg hover:shadow-xl"
+          >
+            <span>{translations.viewAllServices || 'عرض جميع الخدمات'}</span>
+            <FaArrowRight className={`ml-3 ${currentLanguage === 'ar' ? 'rotate-180 mr-3' : ''}`} />
+          </Link>
+        </div>
       </div>
 
       <style jsx>{`
@@ -345,7 +355,7 @@ const Services = ({ id }) => {
         
         .char {
           transform-style: preserve-3d;
-          backface-visibility: hidden;
+          backfaceVisibility: hidden;
         }
       `}</style>
     </section>

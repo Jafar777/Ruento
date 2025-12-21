@@ -5,7 +5,8 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '../../../context/LanguageContext';
 import Navbar from '../../../components/Navbar';
-import { FaArrowLeft, FaUpload, FaSave, FaPlus, FaTrash, FaEdit } from 'react-icons/fa';
+import { FaArrowLeft, FaUpload, FaSave, FaPlus, FaTrash, FaEdit, FaTimes, FaInfoCircle } from 'react-icons/fa';
+import Link from 'next/link';
 
 const ServicesManagement = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -16,46 +17,48 @@ const ServicesManagement = () => {
     description: '', 
     icon: '📋',
     images: [],
-    // New dynamic fields
-    duration: '3-7 Days',
-    groupSize: '2-12 People',
-    availability: 'Year-round',
-    locations: 'Multiple Cities',
+    duration: '3-7 أيام',
+    groupSize: '2-12 شخص',
+    availability: 'على مدار السنة',
+    locations: ['متعدد'],
     price: 499,
-    priceUnit: 'person',
-    includedFeatures: [
-      'Expert local guides',
-      'Comfortable accommodations',
-      'All transportation included',
-      'Entry fees to attractions',
-      'Traditional meals',
-      '24/7 support'
+    priceUnit: 'للشخص',
+    rating: 4.5,
+    features: [
+      'مرشدين محليين خبراء',
+      'إقامة مريحة',
+      'جميع وسائل النقل مشمولة',
+      'رسوم دخول المعالم السياحية',
+      'وجبات تقليدية',
+      'دعم على مدار الساعة'
     ],
     itinerary: [
-      { day: 'Day 1', title: 'Arrival & Welcome', description: 'Airport pickup and traditional welcome dinner' },
-      { day: 'Day 2', title: 'City Exploration', description: 'Guided tour of historical sites and local markets' },
-      { day: 'Day 3', title: 'Cultural Immersion', description: 'Traditional workshops and cultural performances' }
+      { يوم: 'اليوم الأول', عنوان: 'الوصول والترحيب', وصف: 'استقبال من المطار وعشاء ترحيبي تقليدي' },
+      { يوم: 'اليوم الثاني', عنوان: 'استكشاف المدينة', وصف: 'جولة إرشادية في المواقع التاريخية والأسواق المحلية' },
+      { يوم: 'اليوم الثالث', عنوان: 'الانغماس الثقافي', وصف: 'ورش عمل تقليدية وعروض ثقافية' }
     ],
     contactInfo: {
-      phone: '+1 (234) 567-890',
-      email: 'info@ruento.com',
-      liveChat: 'Available 24/7'
+      هاتف: '+7 (999) 999-9999',
+      إيميل: 'info@ruento.com',
+      دردشة: 'متاحة 24/7'
     },
     benefits: [
-      'Best price guarantee',
-      'Flexible cancellation',
-      'Local expert guides',
-      'Sustainable tourism'
+      'ضمان أفضل سعر',
+      'إلغاء مرن',
+      'مرشدين محليين خبراء',
+      'سياحة مستدامة'
     ]
   });
+  
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingService, setEditingService] = useState(null);
   const [newFeature, setNewFeature] = useState('');
   const [newBenefit, setNewBenefit] = useState('');
-  const [newItinerary, setNewItinerary] = useState({ day: '', title: '', description: '' });
-  const { translations } = useLanguage();
+  const [newItinerary, setNewItinerary] = useState({ يوم: '', عنوان: '', وصف: '' });
+  const { translations, currentLanguage } = useLanguage();
   const router = useRouter();
 
   const popularEmojis = ['📋', '🚗', '🏨', '🏠', '✈️', '🏛️', '🎯', '🛎️', '🚕', '🏢', '🌍', '🗺️'];
@@ -72,12 +75,14 @@ const ServicesManagement = () => {
 
   const fetchServices = async () => {
     try {
+      setMessage(translations.loadingServices || 'Loading services...');
       const response = await fetch('/api/services');
       const data = await response.json();
       setServices(data || []);
+      setMessage('');
     } catch (error) {
       console.error('Error fetching services:', error);
-      setMessage('Error loading services data');
+      setMessage(translations.errorLoadingServices || 'Error loading services data');
     } finally {
       setLoading(false);
     }
@@ -91,7 +96,7 @@ const ServicesManagement = () => {
     try {
       const serviceData = service || newService;
       const method = service ? 'PUT' : 'POST';
-      const url = service ? `/api/services/${service._id}` : '/api/services';
+      const url = service ? `/api/services/${service.type}` : '/api/services';
 
       const response = await fetch(url, {
         method,
@@ -104,280 +109,333 @@ const ServicesManagement = () => {
       const data = await response.json();
 
       if (data.success) {
-        setMessage(service ? 'Service updated successfully!' : 'Service added successfully!');
+        setMessage(service ? translations.serviceUpdated : translations.serviceAdded);
         setShowAddForm(false);
+        setEditingService(null);
+        // Reset new service form
         setNewService({ 
           type: '', 
           title: '', 
           description: '', 
           icon: '📋',
           images: [],
-          duration: '3-7 Days',
-          groupSize: '2-12 People',
-          availability: 'Year-round',
-          locations: 'Multiple Cities',
+          duration: '3-7 أيام',
+          groupSize: '2-12 شخص',
+          availability: 'على مدار السنة',
+          locations: ['متعدد'],
           price: 499,
-          priceUnit: 'person',
-          includedFeatures: [
-            'Expert local guides',
-            'Comfortable accommodations',
-            'All transportation included',
-            'Entry fees to attractions',
-            'Traditional meals',
-            '24/7 support'
+          priceUnit: 'للشخص',
+          rating: 4.5,
+          features: [
+            'مرشدين محليين خبراء',
+            'إقامة مريحة',
+            'جميع وسائل النقل مشمولة',
+            'رسوم دخول المعالم السياحية',
+            'وجبات تقليدية',
+            'دعم على مدار الساعة'
           ],
           itinerary: [
-            { day: 'Day 1', title: 'Arrival & Welcome', description: 'Airport pickup and traditional welcome dinner' },
-            { day: 'Day 2', title: 'City Exploration', description: 'Guided tour of historical sites and local markets' },
-            { day: 'Day 3', title: 'Cultural Immersion', description: 'Traditional workshops and cultural performances' }
+            { يوم: 'اليوم الأول', عنوان: 'الوصول والترحيب', وصف: 'استقبال من المطار وعشاء ترحيبي تقليدي' },
+            { يوم: 'اليوم الثاني', عنوان: 'استكشاف المدينة', وصف: 'جولة إرشادية في المواقع التاريخية والأسواق المحلية' },
+            { يوم: 'اليوم الثالث', عنوان: 'الانغماس الثقافي', وصف: 'ورش عمل تقليدية وعروض ثقافية' }
           ],
           contactInfo: {
-            phone: '+1 (234) 567-890',
-            email: 'info@ruento.com',
-            liveChat: 'Available 24/7'
+            هاتف: '+7 (999) 999-9999',
+            إيميل: 'info@ruento.com',
+            دردشة: 'متاحة 24/7'
           },
           benefits: [
-            'Best price guarantee',
-            'Flexible cancellation',
-            'Local expert guides',
-            'Sustainable tourism'
+            'ضمان أفضل سعر',
+            'إلغاء مرن',
+            'مرشدين محليين خبراء',
+            'سياحة مستدامة'
           ]
         });
         fetchServices();
       } else {
-        setMessage(data.message || `Error ${service ? 'updating' : 'adding'} service`);
+        setMessage(data.message || (service ? translations.errorUpdatingService : translations.errorAddingService));
       }
     } catch (error) {
       console.error('Error saving service:', error);
-      setMessage(`Error ${service ? 'updating' : 'adding'} service`);
+      setMessage(service ? translations.errorUpdatingService : translations.errorAddingService);
     } finally {
       setSaving(false);
     }
   };
 
-  const handleDelete = async (serviceId) => {
-    if (!confirm('Are you sure you want to delete this service?')) return;
+  const handleDelete = async (service) => {
+    if (!confirm(translations.confirmDelete || 'Are you sure you want to delete this service?')) return;
 
     try {
-      const response = await fetch(`/api/services/${serviceId}`, {
+      const response = await fetch(`/api/services/${service.type}`, {
         method: 'DELETE',
       });
 
       const data = await response.json();
 
       if (data.success) {
-        setMessage('Service deleted successfully!');
+        setMessage(translations.serviceDeleted);
         fetchServices();
       } else {
-        setMessage(data.message || 'Error deleting service');
+        setMessage(data.message || translations.errorDeletingService);
       }
     } catch (error) {
       console.error('Error deleting service:', error);
-      setMessage('Error deleting service');
+      setMessage(translations.errorDeletingService);
     }
   };
 
-  const handleChange = (field, value, index = null) => {
-    if (index !== null) {
-      // Editing existing service
-      setServices(prev => prev.map((service, i) => 
-        i === index ? { ...service, [field]: value } : service
-      ));
+  const startEditing = (service) => {
+    setEditingService(service);
+    setShowAddForm(true);
+  };
+
+  const cancelEditing = () => {
+    setEditingService(null);
+    setShowAddForm(false);
+    // Reset new service form
+    setNewService({ 
+      type: '', 
+      title: '', 
+      description: '', 
+      icon: '📋',
+      images: [],
+      duration: '3-7 أيام',
+      groupSize: '2-12 شخص',
+      availability: 'على مدار السنة',
+      locations: ['متعدد'],
+      price: 499,
+      priceUnit: 'للشخص',
+      rating: 4.5,
+      features: [
+        'مرشدين محليين خبراء',
+        'إقامة مريحة',
+        'جميع وسائل النقل مشمولة',
+        'رسوم دخول المعالم السياحية',
+        'وجبات تقليدية',
+        'دعم على مدار الساعة'
+      ],
+      itinerary: [
+        { يوم: 'اليوم الأول', عنوان: 'الوصول والترحيب', وصف: 'استقبال من المطار وعشاء ترحيبي تقليدي' },
+        { يوم: 'اليوم الثاني', عنوان: 'استكشاف المدينة', وصف: 'جولة إرشادية في المواقع التاريخية والأسواق المحلية' },
+        { يوم: 'اليوم الثالث', عنوان: 'الانغماس الثقافي', وصف: 'ورش عمل تقليدية وعروض ثقافية' }
+      ],
+      contactInfo: {
+        هاتف: '+7 (999) 999-9999',
+        إيميل: 'info@ruento.com',
+        دردشة: 'متاحة 24/7'
+      },
+      benefits: [
+        'ضمان أفضل سعر',
+        'إلغاء مرن',
+        'مرشدين محليين خبراء',
+        'سياحة مستدامة'
+      ]
+    });
+  };
+
+  const handleFormChange = (field, value) => {
+    if (editingService) {
+      setEditingService({ ...editingService, [field]: value });
     } else {
-      // New service
-      setNewService(prev => ({ ...prev, [field]: value }));
+      setNewService({ ...newService, [field]: value });
     }
   };
 
-  const handleNestedChange = (parentField, field, value, index = null) => {
-    if (index !== null) {
-      // Editing existing service
-      setServices(prev => prev.map((service, i) => 
-        i === index ? { 
-          ...service, 
-          [parentField]: { ...service[parentField], [field]: value }
-        } : service
-      ));
+  const handleNestedChange = (parentField, field, value) => {
+    if (editingService) {
+      setEditingService({ 
+        ...editingService, 
+        [parentField]: { ...editingService[parentField], [field]: value }
+      });
     } else {
-      // New service
-      setNewService(prev => ({ 
-        ...prev, 
-        [parentField]: { ...prev[parentField], [field]: value }
-      }));
+      setNewService({ 
+        ...newService, 
+        [parentField]: { ...newService[parentField], [field]: value }
+      });
     }
   };
 
-  const addFeature = (index = null) => {
+  const addFeature = () => {
     if (!newFeature.trim()) return;
     
-    if (index !== null) {
-      setServices(prev => prev.map((service, i) => 
-        i === index ? { 
-          ...service, 
-          includedFeatures: [...service.includedFeatures, newFeature.trim()]
-        } : service
-      ));
+    if (editingService) {
+      setEditingService({ 
+        ...editingService, 
+        features: [...editingService.features, newFeature.trim()]
+      });
     } else {
-      setNewService(prev => ({ 
-        ...prev, 
-        includedFeatures: [...prev.includedFeatures, newFeature.trim()]
-      }));
+      setNewService({ 
+        ...newService, 
+        features: [...newService.features, newFeature.trim()]
+      });
     }
     setNewFeature('');
   };
 
-  const removeFeature = (featureIndex, serviceIndex = null) => {
-    if (serviceIndex !== null) {
-      setServices(prev => prev.map((service, i) => 
-        i === serviceIndex ? {
-          ...service,
-          includedFeatures: service.includedFeatures.filter((_, idx) => idx !== featureIndex)
-        } : service
-      ));
+  const removeFeature = (featureIndex) => {
+    if (editingService) {
+      setEditingService({
+        ...editingService,
+        features: editingService.features.filter((_, idx) => idx !== featureIndex)
+      });
     } else {
-      setNewService(prev => ({
-        ...prev,
-        includedFeatures: prev.includedFeatures.filter((_, idx) => idx !== featureIndex)
-      }));
+      setNewService({
+        ...newService,
+        features: newService.features.filter((_, idx) => idx !== featureIndex)
+      });
     }
   };
 
-  const addBenefit = (index = null) => {
+  const addBenefit = () => {
     if (!newBenefit.trim()) return;
     
-    if (index !== null) {
-      setServices(prev => prev.map((service, i) => 
-        i === index ? { 
-          ...service, 
-          benefits: [...service.benefits, newBenefit.trim()]
-        } : service
-      ));
+    if (editingService) {
+      setEditingService({ 
+        ...editingService, 
+        benefits: [...editingService.benefits, newBenefit.trim()]
+      });
     } else {
-      setNewService(prev => ({ 
-        ...prev, 
-        benefits: [...prev.benefits, newBenefit.trim()]
-      }));
+      setNewService({ 
+        ...newService, 
+        benefits: [...newService.benefits, newBenefit.trim()]
+      });
     }
     setNewBenefit('');
   };
 
-  const removeBenefit = (benefitIndex, serviceIndex = null) => {
-    if (serviceIndex !== null) {
-      setServices(prev => prev.map((service, i) => 
-        i === serviceIndex ? {
-          ...service,
-          benefits: service.benefits.filter((_, idx) => idx !== benefitIndex)
-        } : service
-      ));
-    } else {
-      setNewService(prev => ({
-        ...prev,
-        benefits: prev.benefits.filter((_, idx) => idx !== benefitIndex)
-      }));
-    }
-  };
-
-  const addItinerary = (index = null) => {
-    if (!newItinerary.day.trim() || !newItinerary.title.trim() || !newItinerary.description.trim()) return;
-    
-    if (index !== null) {
-      setServices(prev => prev.map((service, i) => 
-        i === serviceIndex ? { 
-          ...service, 
-          itinerary: [...service.itinerary, { ...newItinerary }]
-        } : service
-      ));
-    } else {
-      setNewService(prev => ({ 
-        ...prev, 
-        itinerary: [...prev.itinerary, { ...newItinerary }]
-      }));
-    }
-    setNewItinerary({ day: '', title: '', description: '' });
-  };
-
-  const removeItinerary = (itineraryIndex, serviceIndex = null) => {
-    if (serviceIndex !== null) {
-      setServices(prev => prev.map((service, i) => 
-        i === serviceIndex ? {
-          ...service,
-          itinerary: service.itinerary.filter((_, idx) => idx !== itineraryIndex)
-        } : service
-      ));
-    } else {
-      setNewService(prev => ({
-        ...prev,
-        itinerary: prev.itinerary.filter((_, idx) => idx !== itineraryIndex)
-      }));
-    }
-  };
-
-  const handleImageUpload = async (e, index = null) => {
-    const files = Array.from(e.target.files);
-    if (!files.length) return;
-
-    setMessage('Uploading images...');
-
-    try {
-      const uploadPromises = files.map(async (file) => {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET);
-        
-        const response = await fetch(
-          `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-          {
-            method: 'POST',
-            body: formData,
-          }
-        );
-        
-        const data = await response.json();
-        if (data.secure_url) {
-          return data.secure_url;
-        } else {
-          throw new Error('Image upload failed');
-        }
+  const removeBenefit = (benefitIndex) => {
+    if (editingService) {
+      setEditingService({
+        ...editingService,
+        benefits: editingService.benefits.filter((_, idx) => idx !== benefitIndex)
       });
-
-      const uploadedUrls = await Promise.all(uploadPromises);
-
-      if (index !== null) {
-        // Add to existing service
-        setServices(prev => prev.map((service, i) => 
-          i === index ? { 
-            ...service, 
-            images: [...service.images, ...uploadedUrls] 
-          } : service
-        ));
-      } else {
-        // Add to new service
-        setNewService(prev => ({ 
-          ...prev, 
-          images: [...prev.images, ...uploadedUrls] 
-        }));
-      }
-      
-      setMessage('Images uploaded successfully!');
-    } catch (error) {
-      console.error('Error uploading images:', error);
-      setMessage('Error uploading images');
+    } else {
+      setNewService({
+        ...newService,
+        benefits: newService.benefits.filter((_, idx) => idx !== benefitIndex)
+      });
     }
   };
 
-  const removeImage = (imageIndex, serviceIndex = null) => {
-    if (serviceIndex !== null) {
-      setServices(prev => prev.map((service, i) => 
-        i === serviceIndex ? {
-          ...service,
-          images: service.images.filter((_, idx) => idx !== imageIndex)
-        } : service
-      ));
+  const addItinerary = () => {
+    if (!newItinerary.يوم.trim() || !newItinerary.عنوان.trim() || !newItinerary.وصف.trim()) return;
+    
+    if (editingService) {
+      setEditingService({ 
+        ...editingService, 
+        itinerary: [...editingService.itinerary, { ...newItinerary }]
+      });
     } else {
-      setNewService(prev => ({
-        ...prev,
-        images: prev.images.filter((_, idx) => idx !== imageIndex)
-      }));
+      setNewService({ 
+        ...newService, 
+        itinerary: [...newService.itinerary, { ...newItinerary }]
+      });
+    }
+    setNewItinerary({ يوم: '', عنوان: '', وصف: '' });
+  };
+
+  const removeItinerary = (itineraryIndex) => {
+    if (editingService) {
+      setEditingService({
+        ...editingService,
+        itinerary: editingService.itinerary.filter((_, idx) => idx !== itineraryIndex)
+      });
+    } else {
+      setNewService({
+        ...newService,
+        itinerary: newService.itinerary.filter((_, idx) => idx !== itineraryIndex)
+      });
+    }
+  };
+
+const handleImageUpload = async (e) => {
+  const files = Array.from(e.target.files);
+  if (!files.length) return;
+
+  setMessage(translations.uploadingImages || 'Uploading images...');
+
+  try {
+    // IMPORTANT: Make sure these environment variables are properly set
+    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'ddy7qrjck';
+    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'ruento';
+    
+    // For debugging - log the env variables
+    console.log('Cloudinary Config:', {
+      cloudName,
+      uploadPreset,
+      hasApiKey: !!process.env.CLOUDINARY_API_KEY,
+      hasApiSecret: !!process.env.CLOUDINARY_API_SECRET
+    });
+
+    const uploadPromises = files.map(async (file) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', uploadPreset);
+      
+      // Add timestamp and folder for better organization
+      formData.append('timestamp', Math.round((new Date()).getTime() / 1000));
+      formData.append('folder', 'ruento/services');
+      
+      // IMPORTANT: Use the correct API endpoint
+      const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/upload`;
+      
+      console.log('Uploading to:', uploadUrl);
+      
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        body: formData,
+        // No headers needed for FormData
+      });
+      
+      const data = await response.json();
+      console.log('Cloudinary response:', data);
+      
+      if (data.secure_url) {
+        return data.secure_url;
+      } else {
+        console.error('Upload failed:', data);
+        throw new Error(data.error?.message || 'Image upload failed');
+      }
+    });
+
+    const uploadedUrls = await Promise.all(uploadPromises);
+    console.log('Uploaded URLs:', uploadedUrls);
+
+    if (editingService) {
+      setEditingService({ 
+        ...editingService, 
+        images: [...(editingService.images || []), ...uploadedUrls] 
+      });
+    } else {
+      setNewService({ 
+        ...newService, 
+        images: [...(newService.images || []), ...uploadedUrls] 
+      });
+    }
+    
+    setMessage(translations.imagesUploadedSuccess || 'Images uploaded successfully!');
+    
+    // Clear message after 3 seconds
+    setTimeout(() => setMessage(''), 3000);
+    
+  } catch (error) {
+    console.error('Error uploading images:', error);
+    setMessage(error.message || translations.errorUploadingImages || 'Error uploading images');
+  }
+};
+
+  const removeImage = (imageIndex) => {
+    if (editingService) {
+      setEditingService({
+        ...editingService,
+        images: editingService.images.filter((_, idx) => idx !== imageIndex)
+      });
+    } else {
+      setNewService({
+        ...newService,
+        images: newService.images.filter((_, idx) => idx !== imageIndex)
+      });
     }
   };
 
@@ -394,6 +452,9 @@ const ServicesManagement = () => {
     );
   }
 
+  // Get current form data for editing or adding
+  const formData = editingService || newService;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black p-8 text-white">
       <Navbar />
@@ -404,20 +465,24 @@ const ServicesManagement = () => {
               <button
                 onClick={() => router.push('/admin/dashboard')}
                 className="bg-gray-600 text-white p-3 rounded-full hover:bg-gray-700 transition duration-200 mr-4"
+                title={translations.backToDashboard}
               >
                 <FaArrowLeft />
               </button>
               <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-                {translations.manageServices || 'Manage Services'}
+                {translations.manageServices}
               </h1>
             </div>
             <div className="flex items-center space-x-4">
               <button
-                onClick={() => setShowAddForm(!showAddForm)}
+                onClick={() => {
+                  setShowAddForm(!showAddForm);
+                  if (showAddForm) cancelEditing();
+                }}
                 className="bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 transition duration-200 flex items-center"
               >
                 <FaPlus className="mr-2" />
-                Add Service
+                {showAddForm ? translations.cancel : translations.addService}
               </button>
               <button
                 onClick={handleLogout}
@@ -429,172 +494,218 @@ const ServicesManagement = () => {
           </div>
 
           {message && (
-            <div className={`p-4 mb-6 rounded-md ${message.includes('success') ? 'bg-green-800' : 'bg-red-800'}`}>
-              {message}
+            <div className={`p-4 mb-6 rounded-md ${message.includes('success') || message.includes('تم') ? 'bg-green-800' : 'bg-red-800'}`}>
+              <div className="flex items-center">
+                <FaInfoCircle className="mr-2" />
+                {message}
+              </div>
             </div>
           )}
 
-          {/* Add New Service Form */}
+          {/* Add/Edit Service Form */}
           {showAddForm && (
             <div className="bg-gray-800 bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20 mb-8">
-              <h2 className="text-2xl font-semibold mb-6">Add New Service</h2>
-              <form onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Service Type (Unique Identifier)</label>
-                    <input
-                      type="text"
-                      value={newService.type}
-                      onChange={(e) => handleChange('type', e.target.value)}
-                      className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
-                      placeholder="e.g., plans, transportation, hotels"
-                      required
-                    />
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-semibold">
+                  {editingService ? translations.editServiceTitle : translations.newService}
+                </h2>
+                {editingService && (
+                  <button
+                    onClick={cancelEditing}
+                    className="text-gray-400 hover:text-white"
+                    title={translations.cancel}
+                  >
+                    <FaTimes size={24} />
+                  </button>
+                )}
+              </div>
+              <form onSubmit={(e) => handleSubmit(e, editingService)}>
+                {/* Basic Information Section */}
+                <div className="mb-8">
+                  <h3 className="text-xl font-semibold mb-4 text-blue-300 border-b border-blue-500 pb-2">
+                    {translations.basicInformation}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">{translations.serviceType}</label>
+                      <input
+                        type="text"
+                        value={formData.type}
+                        onChange={(e) => handleFormChange('type', e.target.value)}
+                        className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
+                        placeholder={translations.serviceTypePlaceholder}
+                        required
+                        disabled={!!editingService}
+                      />
+                      {editingService && (
+                        <p className="text-xs text-gray-400 mt-1 flex items-center">
+                          <FaInfoCircle className="mr-1" />
+                          {translations.typeCannotBeChanged}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">{translations.displayName}</label>
+                      <input
+                        type="text"
+                        value={formData.title}
+                        onChange={(e) => handleFormChange('title', e.target.value)}
+                        className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
+                        placeholder={translations.displayNamePlaceholder}
+                        required
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Display Name</label>
-                    <input
-                      type="text"
-                      value={newService.title}
-                      onChange={(e) => handleChange('title', e.target.value)}
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2">{translations.iconEmoji}</label>
+                    <div className="flex items-center space-x-4">
+                      <input
+                        type="text"
+                        value={formData.icon}
+                        onChange={(e) => handleFormChange('icon', e.target.value)}
+                        className="w-20 p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white text-center text-2xl"
+                        maxLength="2"
+                        required
+                      />
+                      <div className="flex flex-wrap gap-2">
+                        {popularEmojis.map((emoji, index) => (
+                          <button
+                            key={index}
+                            type="button"
+                            onClick={() => handleFormChange('icon', emoji)}
+                            className="text-2xl hover:scale-110 transition-transform bg-gray-700 bg-opacity-30 p-2 rounded-md"
+                            title={`Select ${emoji}`}
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium mb-2">{translations.description}</label>
+                    <textarea
+                      value={formData.description}
+                      onChange={(e) => handleFormChange('description', e.target.value)}
                       className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
-                      placeholder="e.g., Travel Plans, Transportation"
+                      rows={3}
+                      placeholder={translations.descriptionPlaceholder}
                       required
                     />
                   </div>
                 </div>
 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">Icon/Emoji</label>
-                  <div className="flex items-center space-x-4">
-                    <input
-                      type="text"
-                      value={newService.icon}
-                      onChange={(e) => handleChange('icon', e.target.value)}
-                      className="w-20 p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white text-center text-2xl"
-                      maxLength="2"
-                      required
-                    />
-                    <div className="flex flex-wrap gap-2">
-                      {popularEmojis.map((emoji, index) => (
-                        <button
-                          key={index}
-                          type="button"
-                          onClick={() => handleChange('icon', emoji)}
-                          className="text-2xl hover:scale-110 transition-transform"
-                        >
-                          {emoji}
-                        </button>
-                      ))}
+                {/* Service Details Section */}
+                <div className="mb-8">
+                  <h3 className="text-xl font-semibold mb-4 text-blue-300 border-b border-blue-500 pb-2">
+                    {translations.serviceDetails}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">{translations.duration}</label>
+                      <input
+                        type="text"
+                        value={formData.duration}
+                        onChange={(e) => handleFormChange('duration', e.target.value)}
+                        className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
+                        placeholder={translations.durationPlaceholder}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">{translations.groupSize}</label>
+                      <input
+                        type="text"
+                        value={formData.groupSize}
+                        onChange={(e) => handleFormChange('groupSize', e.target.value)}
+                        className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
+                        placeholder={translations.groupSizePlaceholder}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">{translations.availability}</label>
+                      <input
+                        type="text"
+                        value={formData.availability}
+                        onChange={(e) => handleFormChange('availability', e.target.value)}
+                        className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
+                        placeholder={translations.availabilityPlaceholder}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">{translations.locations}</label>
+                      <input
+                        type="text"
+                        value={Array.isArray(formData.locations) ? formData.locations.join(', ') : formData.locations}
+                        onChange={(e) => handleFormChange('locations', e.target.value.split(',').map(l => l.trim()))}
+                        className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
+                        placeholder={translations.locationsPlaceholder}
+                      />
                     </div>
                   </div>
                 </div>
 
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">Description</label>
-                  <textarea
-                    value={newService.description}
-                    onChange={(e) => handleChange('description', e.target.value)}
-                    className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
-                    rows={3}
-                    placeholder="Enter service description"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Duration</label>
-                    <input
-                      type="text"
-                      value={newService.duration}
-                      onChange={(e) => handleChange('duration', e.target.value)}
-                      className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
-                      placeholder="e.g., 3-7 Days"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Group Size</label>
-                    <input
-                      type="text"
-                      value={newService.groupSize}
-                      onChange={(e) => handleChange('groupSize', e.target.value)}
-                      className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
-                      placeholder="e.g., 2-12 People"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Availability</label>
-                    <input
-                      type="text"
-                      value={newService.availability}
-                      onChange={(e) => handleChange('availability', e.target.value)}
-                      className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
-                      placeholder="e.g., Year-round"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Locations</label>
-                    <input
-                      type="text"
-                      value={newService.locations}
-                      onChange={(e) => handleChange('locations', e.target.value)}
-                      className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
-                      placeholder="e.g., Multiple Cities"
-                    />
+                {/* Pricing Information Section */}
+                <div className="mb-8">
+                  <h3 className="text-xl font-semibold mb-4 text-blue-300 border-b border-blue-500 pb-2">
+                    {translations.pricingInformation}
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium mb-2">{translations.price}</label>
+                      <input
+                        type="number"
+                        value={formData.price}
+                        onChange={(e) => handleFormChange('price', e.target.value)}
+                        className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
+                        placeholder="499"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium mb-2">{translations.priceUnit}</label>
+                      <input
+                        type="text"
+                        value={formData.priceUnit}
+                        onChange={(e) => handleFormChange('priceUnit', e.target.value)}
+                        className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
+                        placeholder={translations.priceUnitPlaceholder}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Price</label>
-                    <input
-                      type="number"
-                      value={newService.price}
-                      onChange={(e) => handleChange('price', e.target.value)}
-                      className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
-                      placeholder="499"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">Price Unit</label>
-                    <input
-                      type="text"
-                      value={newService.priceUnit}
-                      onChange={(e) => handleChange('priceUnit', e.target.value)}
-                      className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
-                      placeholder="e.g., person, day, package"
-                    />
-                  </div>
-                </div>
-
-                {/* Included Features */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">Included Features</label>
+                {/* Included Features Section */}
+                <div className="mb-8">
+                  <h3 className="text-xl font-semibold mb-4 text-blue-300 border-b border-blue-500 pb-2">
+                    {translations.includedFeatures}
+                  </h3>
                   <div className="flex gap-2 mb-2">
                     <input
                       type="text"
                       value={newFeature}
                       onChange={(e) => setNewFeature(e.target.value)}
                       className="flex-1 p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
-                      placeholder="Add a feature"
+                      placeholder={translations.addFeature}
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addFeature())}
                     />
                     <button
                       type="button"
-                      onClick={() => addFeature()}
-                      className="bg-blue-600 text-white px-4 rounded-md hover:bg-blue-700 transition"
+                      onClick={addFeature}
+                      className="bg-blue-600 text-white px-4 rounded-md hover:bg-blue-700 transition flex items-center"
                     >
-                      Add
+                      {translations.add}
                     </button>
                   </div>
                   <div className="space-y-2">
-                    {newService.includedFeatures.map((feature, idx) => (
+                    {formData.features && formData.features.map((feature, idx) => (
                       <div key={idx} className="flex items-center justify-between p-2 bg-gray-800/30 rounded">
                         <span>{feature}</span>
                         <button
                           type="button"
                           onClick={() => removeFeature(idx)}
                           className="text-red-400 hover:text-red-300"
+                          title={translations.delete}
                         >
                           ×
                         </button>
@@ -603,33 +714,37 @@ const ServicesManagement = () => {
                   </div>
                 </div>
 
-                {/* Benefits */}
-                <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">Benefits</label>
+                {/* Benefits Section */}
+                <div className="mb-8">
+                  <h3 className="text-xl font-semibold mb-4 text-blue-300 border-b border-blue-500 pb-2">
+                    {translations.serviceBenefits}
+                  </h3>
                   <div className="flex gap-2 mb-2">
                     <input
                       type="text"
                       value={newBenefit}
                       onChange={(e) => setNewBenefit(e.target.value)}
                       className="flex-1 p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
-                      placeholder="Add a benefit"
+                      placeholder={translations.addBenefit}
+                      onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addBenefit())}
                     />
                     <button
                       type="button"
-                      onClick={() => addBenefit()}
-                      className="bg-blue-600 text-white px-4 rounded-md hover:bg-blue-700 transition"
+                      onClick={addBenefit}
+                      className="bg-blue-600 text-white px-4 rounded-md hover:bg-blue-700 transition flex items-center"
                     >
-                      Add
+                      {translations.add}
                     </button>
                   </div>
                   <div className="space-y-2">
-                    {newService.benefits.map((benefit, idx) => (
+                    {formData.benefits && formData.benefits.map((benefit, idx) => (
                       <div key={idx} className="flex items-center justify-between p-2 bg-gray-800/30 rounded">
                         <span>{benefit}</span>
                         <button
                           type="button"
                           onClick={() => removeBenefit(idx)}
                           className="text-red-400 hover:text-red-300"
+                          title={translations.delete}
                         >
                           ×
                         </button>
@@ -638,46 +753,20 @@ const ServicesManagement = () => {
                   </div>
                 </div>
 
-                {/* Contact Info */}
-                <div className="mb-4">
-                  <h3 className="text-lg font-semibold mb-2">Contact Information</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Phone</label>
-                      <input
-                        type="text"
-                        value={newService.contactInfo.phone}
-                        onChange={(e) => handleNestedChange('contactInfo', 'phone', e.target.value)}
-                        className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Email</label>
-                      <input
-                        type="email"
-                        value={newService.contactInfo.email}
-                        onChange={(e) => handleNestedChange('contactInfo', 'email', e.target.value)}
-                        className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium mb-2">Live Chat Status</label>
-                      <input
-                        type="text"
-                        value={newService.contactInfo.liveChat}
-                        onChange={(e) => handleNestedChange('contactInfo', 'liveChat', e.target.value)}
-                        className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
-                      />
-                    </div>
-                  </div>
-                </div>
 
-                <div className="mb-6">
-                  <label className="block text-sm font-medium mb-2">Images</label>
+
+
+
+
+                {/* Images Section */}
+                <div className="mb-8">
+                  <h3 className="text-xl font-semibold mb-4 text-blue-300 border-b border-blue-500 pb-2">
+                    {translations.mediaGallery}
+                  </h3>
                   <div className="flex items-center space-x-4 mb-4">
                     <label className="flex items-center bg-blue-600 text-white py-2 px-4 rounded-md cursor-pointer hover:bg-blue-700 transition">
                       <FaUpload className="mr-2" />
-                      Upload Images
+                      {translations.uploadImages}
                       <input
                         type="file"
                         accept="image/*"
@@ -687,12 +776,12 @@ const ServicesManagement = () => {
                       />
                     </label>
                     <span className="text-sm text-blue-300">
-                      {newService.images.length} image(s) uploaded
+                      {formData.images?.length || 0} {translations.imagesUploaded}
                     </span>
                   </div>
-                  {newService.images.length > 0 && (
+                  {formData.images && formData.images.length > 0 && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      {newService.images.map((image, imgIndex) => (
+                      {formData.images.map((image, imgIndex) => (
                         <div key={imgIndex} className="relative">
                           <img 
                             src={image} 
@@ -703,6 +792,7 @@ const ServicesManagement = () => {
                             type="button"
                             onClick={() => removeImage(imgIndex)}
                             className="absolute top-1 right-1 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"
+                            title={translations.delete}
                           >
                             ×
                           </button>
@@ -719,70 +809,84 @@ const ServicesManagement = () => {
                     className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-md font-semibold flex items-center hover:from-blue-600 hover:to-purple-700 transition duration-300 disabled:opacity-50"
                   >
                     <FaSave className="mr-2" />
-                    {saving ? 'Adding...' : 'Add Service'}
+                    {saving ? (editingService ? translations.updating : translations.adding) : (editingService ? translations.updateService : translations.addService)}
                   </button>
                   <button
                     type="button"
-                    onClick={() => setShowAddForm(false)}
+                    onClick={cancelEditing}
                     className="bg-gray-600 text-white py-3 px-6 rounded-md font-semibold hover:bg-gray-700 transition duration-300"
                   >
-                    Cancel
+                    {translations.cancel}
                   </button>
                 </div>
               </form>
             </div>
           )}
 
-          {/* Existing Services - Simplified for space */}
+          {/* Existing Services */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {services.map((service, index) => (
-              <div key={service._id} className="bg-gray-800 bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20">
+              <div key={service._id || index} className="bg-gray-800 bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20 hover:border-opacity-40 transition duration-300">
                 <div className="flex justify-between items-center mb-6">
                   <div className="flex items-center">
                     <span className="text-3xl">{service.icon}</span>
-                    <h3 className="text-2xl font-semibold ml-3">{service.title}</h3>
+                    <div className={currentLanguage === 'ar' ? 'mr-3' : 'ml-3'}>
+                      <h3 className="text-2xl font-semibold">{service.title}</h3>
+                      <p className="text-sm text-gray-400">
+                        {translations.serviceType}: {service.type}
+                      </p>
+                    </div>
                   </div>
-                  <button
-                    onClick={() => handleDelete(service._id)}
-                    className="bg-red-600 text-white p-2 rounded-md hover:bg-red-700 transition duration-200"
-                  >
-                    <FaTrash />
-                  </button>
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => startEditing(service)}
+                      className="bg-blue-600 text-white p-2 rounded-md hover:bg-blue-700 transition duration-200"
+                      title={translations.edit}
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(service)}
+                      className="bg-red-600 text-white p-2 rounded-md hover:bg-red-700 transition duration-200"
+                      title={translations.delete}
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
                 </div>
 
                 <p className="text-gray-300 mb-4 line-clamp-2">{service.description}</p>
                 
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <span className="text-blue-400 font-bold">${service.price || 499}</span>
-                    <span className="text-gray-400 ml-1">/ {service.priceUnit || 'person'}</span>
+                    <span className="text-blue-400 font-bold">{service.price || 499}</span>
+                    <span className="text-gray-400 mx-1">/</span>
+                    <span className="text-gray-400">{service.priceUnit || translations.priceUnit}</span>
                   </div>
-                  <Link 
-                    href={`/services/${service._id}`}
-                    target="_blank"
-                    className="text-blue-400 hover:text-blue-300 text-sm"
-                  >
-                    View Service Page →
-                  </Link>
+                  <div className="text-sm text-gray-400">
+                    {service.features?.length || 0} {translations.featuresCount} • {service.itinerary?.length || 0} {translations.daysCount}
+                  </div>
                 </div>
 
-                <button
-                  onClick={() => {
-                    // In a real app, you'd open an edit modal or navigate to edit page
-                    alert('Edit functionality would open a form similar to add form');
-                  }}
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-4 rounded-md font-semibold hover:from-blue-600 hover:to-purple-700 transition duration-300"
-                >
-                  <FaEdit className="inline mr-2" />
-                  Edit Service
-                </button>
+                <div className="flex items-center justify-between">
+                  <div className="text-sm text-gray-400">
+                    {service.locations ? (Array.isArray(service.locations) ? service.locations.join(', ') : service.locations) : translations.multipleLocations}
+                  </div>
+                  <Link 
+                    href={`/services/${service.type}`}
+                    target="_blank"
+                    className="text-blue-400 hover:text-blue-300 text-sm flex items-center"
+                  >
+                    {translations.viewServicePage}
+                  </Link>
+                </div>
               </div>
             ))}
           </div>
 
           {services.length === 0 && !showAddForm && (
             <div className="text-center py-12">
-              <p className="text-xl text-gray-400">No services yet. Add your first service!</p>
+              <p className="text-xl text-gray-400">{translations.noServices}</p>
             </div>
           )}
         </div>

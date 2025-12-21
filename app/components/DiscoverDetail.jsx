@@ -399,9 +399,7 @@ const DiscoverDetail = () => {
                       >
                         {translations.bookNow || 'Book Now'}
                       </button>
-                      <button className="w-full py-4 bg-white border-2 border-blue-500 text-blue-600 rounded-xl font-bold text-lg hover:bg-blue-50 transition-colors duration-300">
-                        {translations.saveForLater || 'Save for Later'}
-                      </button>
+       
                     </>
                   ) : (
                     <button className="w-full py-4 bg-gradient-to-r from-emerald-500 to-green-500 text-white rounded-xl font-bold text-lg hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5">

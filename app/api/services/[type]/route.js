@@ -1,20 +1,32 @@
-// app/api/services/[id]/route.js
+// app/api/services/[type]/route.js
 import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../../../lib/mongodb';
 import { ObjectId } from 'mongodb';
 
+// NOTE: In Next.js 14, params is a Promise that needs to be awaited
 export async function GET(request, { params }) {
   try {
-    const { id } = params;
+    // Await the params promise and use "type" instead of "id"
+    const { type } = await params;
     const { db } = await connectToDatabase();
     
-    // Check if id is a valid ObjectId
+    // Check if type is a valid ObjectId (for backward compatibility)
     let service;
-    if (ObjectId.isValid(id)) {
-      service = await db.collection('services').findOne({ _id: new ObjectId(id) });
-    } else {
-      // If not ObjectId, try to find by type
-      service = await db.collection('services').findOne({ type: id });
+    if (ObjectId.isValid(type)) {
+      service = await db.collection('services').findOne({ _id: new ObjectId(type) });
+    }
+    
+    // If not found by ObjectId, try to find by type
+    if (!service) {
+      // Try exact type match
+      service = await db.collection('services').findOne({ type: type });
+    }
+    
+    // If still not found, try case-insensitive match
+    if (!service) {
+      service = await db.collection('services').findOne({
+        type: { $regex: new RegExp(`^${type}$`, 'i') }
+      });
     }
     
     if (!service) {
@@ -39,10 +51,11 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    const { id } = params;
+    // Await the params promise
+    const { type } = await params;
     const body = await request.json();
     const { 
-      type, 
+      type: newType, 
       title, 
       description, 
       icon, 
@@ -59,7 +72,7 @@ export async function PUT(request, { params }) {
       benefits
     } = body;
     
-    if (!type || !title || !description || !icon) {
+    if (!newType || !title || !description || !icon) {
       return NextResponse.json(
         { message: 'Type, title, description, and icon are required' },
         { status: 400 }
@@ -68,10 +81,27 @@ export async function PUT(request, { params }) {
 
     const { db } = await connectToDatabase();
     
+    // First find the service by type
+    let service;
+    if (ObjectId.isValid(type)) {
+      service = await db.collection('services').findOne({ _id: new ObjectId(type) });
+    }
+    
+    if (!service) {
+      service = await db.collection('services').findOne({ type: type });
+    }
+    
+    if (!service) {
+      return NextResponse.json(
+        { message: 'Service not found' },
+        { status: 404 }
+      );
+    }
+    
     // Check if service type already exists for other services
     const existingService = await db.collection('services').findOne({ 
-      type: type.toLowerCase().trim(), 
-      _id: { $ne: new ObjectId(id) } 
+      type: newType.toLowerCase().trim(), 
+      _id: { $ne: service._id } 
     });
     
     if (existingService) {
@@ -82,10 +112,10 @@ export async function PUT(request, { params }) {
     }
 
     const result = await db.collection('services').updateOne(
-      { _id: new ObjectId(id) },
+      { _id: service._id },
       { 
         $set: { 
-          type: type.toLowerCase().trim(),
+          type: newType.toLowerCase().trim(),
           title: title.trim(),
           description: description.trim(),
           icon,
@@ -147,12 +177,28 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    const { id } = params;
-
+    // Await the params promise
+    const { type } = await params;
     const { db } = await connectToDatabase();
     
+    let service;
+    if (ObjectId.isValid(type)) {
+      service = await db.collection('services').findOne({ _id: new ObjectId(type) });
+    }
+    
+    if (!service) {
+      service = await db.collection('services').findOne({ type: type });
+    }
+    
+    if (!service) {
+      return NextResponse.json(
+        { message: 'Service not found' },
+        { status: 404 }
+      );
+    }
+    
     const result = await db.collection('services').deleteOne({
-      _id: new ObjectId(id)
+      _id: service._id
     });
 
     if (result.deletedCount === 0) {

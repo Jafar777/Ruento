@@ -1,147 +1,87 @@
 // app/api/services/route.js
 import { NextResponse } from 'next/server';
-import { connectToDatabase } from '../../../lib/mongodb';
+import connectDB from '@/lib/mongodb';
+import Service from '@/models/Service';
 
+// GET all services
 export async function GET() {
   try {
-    const { db } = await connectToDatabase();
-    const services = await db.collection('services').find({}).toArray();
+    await connectDB();
     
-    const serializedServices = services.map(service => ({
-      ...service,
-      _id: service._id.toString(),
-      images: service.images || [],
-      // Ensure all new fields exist with defaults if not present
-      duration: service.duration || '3-7 Days',
-      groupSize: service.groupSize || '2-12 People',
-      availability: service.availability || 'Year-round',
-      locations: service.locations || 'Multiple',
-      price: service.price || 499,
-      priceUnit: service.priceUnit || 'person',
-      includedFeatures: service.includedFeatures || [
-        'Expert local guides',
-        'Comfortable accommodations',
-        'All transportation included',
-        'Entry fees to attractions',
-        'Traditional meals',
-        '24/7 support'
-      ],
-      itinerary: service.itinerary || [
-        { day: 'Day 1', title: 'Arrival & Welcome', description: 'Airport pickup and traditional welcome dinner' },
-        { day: 'Day 2', title: 'City Exploration', description: 'Guided tour of historical sites and local markets' },
-        { day: 'Day 3', title: 'Cultural Immersion', description: 'Traditional workshops and cultural performances' }
-      ],
-      contactInfo: service.contactInfo || {
-        phone: '+1 (234) 567-890',
-        email: 'info@ruento.com',
-        liveChat: 'Available 24/7'
-      },
-      benefits: service.benefits || [
-        'Best price guarantee',
-        'Flexible cancellation',
-        'Local expert guides',
-        'Sustainable tourism'
-      ]
-    }));
+    const services = await Service.find({});
     
-    return NextResponse.json(serializedServices);
+    return NextResponse.json(services, { status: 200 });
   } catch (error) {
     console.error('Error fetching services:', error);
     return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
+      { error: 'فشل في جلب البيانات' },
+      { status: 500 } 
     );
   }
 }
 
+// POST create new service
 export async function POST(request) {
   try {
-    const body = await request.json();
-    const { 
-      type, 
-      title, 
-      description, 
-      icon, 
-      images,
-      duration,
-      groupSize,
-      availability,
-      locations,
-      price,
-      priceUnit,
-      includedFeatures,
-      itinerary,
-      contactInfo,
-      benefits
-    } = body;
+    await connectDB();
     
-    if (!type || !title || !description || !icon) {
-      return NextResponse.json(
-        { message: 'Type, title, description, and icon are required' },
-        { status: 400 }
-      );
-    }
-
-    const { db } = await connectToDatabase();
+    const data = await request.json();
     
-    // Check if service type already exists
-    const existingService = await db.collection('services').findOne({ type });
-    if (existingService) {
-      return NextResponse.json(
-        { message: 'Service type already exists' },
-        { status: 400 }
-      );
-    }
-
-    const result = await db.collection('services').insertOne({
-      type: type.toLowerCase().trim(),
-      title: title.trim(),
-      description: description.trim(),
-      icon: icon,
-      images: images || [],
-      duration: duration || '3-7 Days',
-      groupSize: groupSize || '2-12 People',
-      availability: availability || 'Year-round',
-      locations: locations || 'Multiple',
-      price: price || 499,
-      priceUnit: priceUnit || 'person',
-      includedFeatures: includedFeatures || [
-        'Expert local guides',
-        'Comfortable accommodations',
-        'All transportation included',
-        'Entry fees to attractions',
-        'Traditional meals',
-        '24/7 support'
+    // Ensure data is in Arabic
+    const arabicData = {
+      type: data.type || 'خدمة',
+      title: data.title || 'عنوان الخدمة',
+      description: data.description || 'وصف الخدمة باللغة العربية',
+      icon: data.icon || '📋',
+      images: data.images || [],
+      duration: data.duration || '3-7 أيام',
+      groupSize: data.groupSize || '2-12 شخص',
+      availability: data.availability || 'على مدار السنة',
+      locations: data.locations || ['متعدد'],
+      price: data.price || 499,
+      priceUnit: data.priceUnit || 'للشخص',
+      rating: data.rating || 4.5,
+      features: data.features || [
+        'مرشدين محليين خبراء',
+        'إقامة مريحة',
+        'جميع وسائل النقل مشمولة',
+        'رسوم دخول المعالم السياحية',
+        'وجبات تقليدية',
+        'دعم على مدار الساعة'
       ],
-      itinerary: itinerary || [
-        { day: 'Day 1', title: 'Arrival & Welcome', description: 'Airport pickup and traditional welcome dinner' },
-        { day: 'Day 2', title: 'City Exploration', description: 'Guided tour of historical sites and local markets' },
-        { day: 'Day 3', title: 'Cultural Immersion', description: 'Traditional workshops and cultural performances' }
+      itinerary: data.itinerary || [
+        { يوم: 'اليوم الأول', عنوان: 'الوصول والترحيب', وصف: 'استقبال من المطار وعشاء ترحيبي تقليدي' },
+        { يوم: 'اليوم الثاني', عنوان: 'استكشاف المدينة', وصف: 'جولة إرشادية في المواقع التاريخية والأسواق المحلية' },
+        { يوم: 'اليوم الثالث', عنوان: 'الانغماس الثقافي', وصف: 'ورش عمل تقليدية وعروض ثقافية' }
       ],
-      contactInfo: contactInfo || {
-        phone: '+1 (234) 567-890',
-        email: 'info@ruento.com',
-        liveChat: 'Available 24/7'
+      contactInfo: data.contactInfo || {
+        هاتف: '+1 (234) 567-890',
+        إيميل: 'info@ruento.com',
+        دردشة: 'متاحة 24/7'
       },
-      benefits: benefits || [
-        'Best price guarantee',
-        'Flexible cancellation',
-        'Local expert guides',
-        'Sustainable tourism'
-      ],
-      createdAt: new Date(),
-      updatedAt: new Date()
-    });
-
-    return NextResponse.json({
-      message: 'Service created successfully',
-      success: true,
-      serviceId: result.insertedId
-    });
+      benefits: data.benefits || [
+        'ضمان أفضل سعر',
+        'إلغاء مرن',
+        'مرشدين محليين خبراء',
+        'سياحة مستدامة'
+      ]
+    };
+    
+    const service = new Service(arabicData);
+    await service.save();
+    
+    return NextResponse.json(
+      { 
+        success: true, 
+        message: 'تم إضافة الخدمة بنجاح',
+        service 
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error('Error creating service:', error);
     return NextResponse.json(
-      { message: 'Internal server error' },
+      { error: 'فشل في إنشاء الخدمة' },
       { status: 500 }
     );
   }

@@ -68,6 +68,10 @@ const MobileSidebar = ({ isOpen, onClose, handleNavigation, handleUserIconClick 
                                 {translations.getToKnowRussia}
                             </button>
 
+                            <button onClick={() => handleLinkClick('blog')} className="text-gray-800 hover:text-blue-500 transition py-2 text-left">
+                                {translations.blog || 'Blog'}
+                            </button>
+
                             <button onClick={() => handleLinkClick('contact')} className="text-gray-800 hover:text-blue-500 transition py-2 text-left">
                                 {translations.contact}
                             </button>
@@ -110,6 +114,7 @@ const Navbar = () => {
     const pathname = usePathname();
 
     const isAdminLoginPage = pathname === '/admin/login';
+    const isHomePage = pathname === '/';
 
     useEffect(() => {
         const checkIsMobile = () => {
@@ -123,18 +128,23 @@ const Navbar = () => {
     }, []);
 
     useEffect(() => {
-        if (isMobile || isAdminLoginPage) {
+        // Always solid on non-home pages
+        if (!isHomePage) {
             setIsScrolled(true);
             return;
         }
 
+        // On home page, check scroll position
         const handleScroll = () => {
             setIsScrolled(window.scrollY > 50);
         };
 
+        // Set initial state based on current scroll position
+        setIsScrolled(window.scrollY > 50);
+        
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
-    }, [isMobile, isAdminLoginPage]);
+    }, [isHomePage]);
 
     useGSAP(() => {
         gsap.fromTo(navbarRef.current,
@@ -149,31 +159,111 @@ const Navbar = () => {
 
     const handleNavigation = (sectionId) => {
         if (pathname !== '/') {
+            // Store the section to scroll to in sessionStorage
+            sessionStorage.setItem('scrollToSection', sectionId);
+            sessionStorage.setItem('scrollTimestamp', Date.now().toString());
+            
+            // Navigate to home
             router.push('/');
-            setTimeout(() => {
-                scrollToSection(sectionId);
-            }, 100);
         } else {
+            // Already on home page, scroll to section immediately
             scrollToSection(sectionId);
         }
     };
 
     const scrollToSection = (sectionId) => {
-        setTimeout(() => {
-            const element = document.getElementById(sectionId);
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth' });
+        // Special handling for home/hero - scroll to top of page
+        if (sectionId === 'hero') {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+            return;
+        }
+
+        // For other sections, find the element and scroll to it
+        const element = document.getElementById(sectionId);
+        if (element) {
+            // Use scrollIntoView which is more reliable
+            element.scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+            
+            // Clear the stored section after successful scroll
+            sessionStorage.removeItem('scrollToSection');
+            sessionStorage.removeItem('scrollTimestamp');
+        } else {
+            // If element not found, try again after a short delay
+            setTimeout(() => {
+                const element = document.getElementById(sectionId);
+                if (element) {
+                    element.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    sessionStorage.removeItem('scrollToSection');
+                    sessionStorage.removeItem('scrollTimestamp');
+                }
+            }, 300);
+        }
+    };
+
+    // Listen for navigation completion to trigger scrolling
+    useEffect(() => {
+        const handleRouteChange = () => {
+            if (pathname === '/') {
+                // Check if there's a section to scroll to
+                const sectionToScroll = sessionStorage.getItem('scrollToSection');
+                const scrollTimestamp = sessionStorage.getItem('scrollTimestamp');
+                
+                if (sectionToScroll && scrollTimestamp) {
+                    const timeElapsed = Date.now() - parseInt(scrollTimestamp);
+                    
+                    // If less than 5 seconds have passed, scroll to section
+                    if (timeElapsed < 5000) {
+                        // Wait a bit for the page to fully render
+                        setTimeout(() => {
+                            scrollToSection(sectionToScroll);
+                        }, 500);
+                    } else {
+                        // Clear old scroll data
+                        sessionStorage.removeItem('scrollToSection');
+                        sessionStorage.removeItem('scrollTimestamp');
+                    }
+                }
             }
-        }, 50);
+        };
+
+        // Listen for route changes
+        const timeoutId = setTimeout(() => {
+            handleRouteChange();
+        }, 100);
+
+        return () => clearTimeout(timeoutId);
+    }, [pathname]);
+
+    // Determine navbar background class
+    const getNavbarBackground = () => {
+        // Admin login page always has blue background
+        if (isAdminLoginPage) {
+            return 'bg-blue-600 shadow-md';
+        }
+        
+        // Non-home pages always have blue background
+        if (!isHomePage) {
+            return 'bg-blue-600 shadow-md';
+        }
+        
+        // Home page: transparent when not scrolled, blue when scrolled
+        return isScrolled ? 'bg-blue-600 shadow-md' : 'bg-transparent';
     };
 
     return (
         <>
             <header
                 ref={navbarRef}
-                className={`fixed top-0 left-0 w-full z-30 transition-all duration-300 h-16 ${isAdminLoginPage ? 'bg-blue-600 shadow-md' :
-                    (isScrolled ? 'bg-blue-600 shadow-md' : 'bg-transparent')
-                    }`}
+                className={`fixed top-0 left-0 w-full z-30 transition-all duration-300 h-16 ${getNavbarBackground()}`}
             >
                 <div className="container mx-auto px-4 h-full">
                     {/* Desktop Navigation */}
@@ -182,7 +272,9 @@ const Navbar = () => {
                         <div className="flex items-center space-x-4">
                             <button
                                 onClick={handleUserIconClick}
-                                className="text-white p-2 rounded-full hover:bg-blue-600 transition cursor-pointer"
+                                className={`p-2 rounded-full hover:bg-blue-600 transition cursor-pointer ${
+                                    isHomePage && !isScrolled ? 'text-gray-800 hover:bg-blue-100' : 'text-white hover:bg-blue-600'
+                                }`}
                                 suppressHydrationWarning
                             >
                                 <FaUser size={20} />
@@ -205,32 +297,57 @@ const Navbar = () => {
                         {/* Right Navigation */}
                         <div className="flex items-center space-x-6">
                             <nav className="flex items-center space-x-6">
-                                <button onClick={() => handleNavigation('hero')} className="text-white hover:text-blue-200 transition ml-3 mr-3">
+                                <button 
+                                    onClick={() => handleNavigation('hero')} 
+                                    className={`transition ml-3 mr-3 ${
+                                        isHomePage && !isScrolled ? 'text-gray-800 hover:text-blue-600' : 'text-white hover:text-blue-200'
+                                    }`}
+                                >
                                     {translations.home}
                                 </button>
 
                                 <button
                                     onClick={() => handleNavigation('services')}
-                                    className="text-white hover:text-blue-200 ml-3 mr-3 transition"
+                                    className={`ml-3 mr-3 transition ${
+                                        isHomePage && !isScrolled ? 'text-gray-800 hover:text-blue-600' : 'text-white hover:text-blue-200'
+                                    }`}
                                 >
                                     {translations.services}
                                 </button>
 
                                 <button
                                     onClick={() => handleNavigation('get-to-know-russia')}
-                                    className="text-white hover:text-blue-200 ml-3 mr-3 transition"
+                                    className={`ml-3 mr-3 transition ${
+                                        isHomePage && !isScrolled ? 'text-gray-800 hover:text-blue-600' : 'text-white hover:text-blue-200'
+                                    }`}
                                 >
                                     {translations.getToKnowRussia}
                                 </button>
 
-                                <button onClick={() => handleNavigation('contact')} className="text-white hover:text-blue-200 ml-3 mr-3 transition">
+                                <button
+                                    onClick={() => handleNavigation('blog')}
+                                    className={`ml-3 mr-3 transition ${
+                                        isHomePage && !isScrolled ? 'text-gray-800 hover:text-blue-600' : 'text-white hover:text-blue-200'
+                                    }`}
+                                >
+                                    {translations.blog || 'Blog'}
+                                </button>
+
+                                <button 
+                                    onClick={() => handleNavigation('contact')} 
+                                    className={`ml-3 mr-3 transition ${
+                                        isHomePage && !isScrolled ? 'text-gray-800 hover:text-blue-600' : 'text-white hover:text-blue-200'
+                                    }`}
+                                >
                                     {translations.contact}
                                 </button>
                             </nav>
 
                             <button
                                 onClick={toggleLanguage}
-                                className="text-white p-2 rounded-full hover:bg-blue-600 transition cursor-pointer"
+                                className={`p-2 rounded-full hover:bg-blue-600 transition cursor-pointer ${
+                                    isHomePage && !isScrolled ? 'text-gray-800 hover:bg-blue-100' : 'text-white hover:bg-blue-600'
+                                }`}
                             >
                                 <MdLanguage size={24} />
                             </button>
@@ -242,7 +359,9 @@ const Navbar = () => {
                         <div className="flex items-center h-full">
                             <button
                                 onClick={() => setMobileSidebarOpen(true)}
-                                className="text-white p-2 rounded-full hover:bg-blue-600 transition"
+                                className={`p-2 rounded-full hover:bg-blue-600 transition ${
+                                    isHomePage && !isScrolled ? 'text-gray-800 hover:bg-blue-100' : 'text-white hover:bg-blue-600'
+                                }`}
                             >
                                 <RxHamburgerMenu size={24} />
                             </button>
@@ -263,7 +382,9 @@ const Navbar = () => {
                         <div className="flex items-center h-full">
                             <button
                                 onClick={toggleLanguage}
-                                className="text-white p-2 rounded-full hover:bg-blue-600 transition"
+                                className={`p-2 rounded-full hover:bg-blue-600 transition ${
+                                    isHomePage && !isScrolled ? 'text-gray-800 hover:bg-blue-100' : 'text-white hover:bg-blue-600'
+                                }`}
                             >
                                 <MdLanguage size={24} />
                             </button>
