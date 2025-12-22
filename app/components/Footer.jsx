@@ -215,9 +215,9 @@ const Footer = () => {
               <Image
                 src="/logo.png"
                 alt="Ruento Tourism"
-                width={120}
-                height={48}
-                className="h-12 w-auto"
+                width={140}
+                height={140}
+                className=" "
               />
             </div>
             <p className="text-gray-400 mb-6">
@@ -323,25 +323,7 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Newsletter Subscription */}
-        <div ref={newsletterRef} className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20 mb-12">
-          <div className="flex flex-col md:flex-row items-center justify-between">
-            <div className="mb-4 md:mb-0">
-              <h3 className="text-xl font-semibold mb-2">{translations.newsletter || 'Subscribe to our Newsletter'}</h3>
-              <p className="text-gray-400">{translations.newsletterDescription || 'Get the latest news and updates about our services and offers.'}</p>
-            </div>
-            <div className="flex flex-col sm:flex-row gap-2 w-full md:w-auto">
-              <input
-                type="email"
-                placeholder={translations.yourEmail || 'Your email address'}
-                className="px-4 py-3 rounded-md bg-white bg-opacity-5 border border-white border-opacity-20 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 sm:min-w-72"
-              />
-              <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-6 py-3 rounded-md font-semibold hover:from-blue-600 hover:to-purple-700 transition duration-300">
-                {translations.subscribe || 'Subscribe'}
-              </button>
-            </div>
-          </div>
-        </div>
+  
 
         {/* Bottom Bar */}
         <div ref={bottomBarRef} className="border-t border-gray-800 pt-8 flex flex-col md:flex-row justify-between items-center">

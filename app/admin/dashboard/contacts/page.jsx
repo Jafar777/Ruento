@@ -121,22 +121,22 @@ const ContactsManagement = () => {
   }
 
   const socialMediaPlatforms = [
-    { key: 'whatsapp', icon: <FaWhatsapp className="text-green-500" />, label: 'WhatsApp', placeholder: '+7 (999) 999-9999' },
-    { key: 'instagram', icon: <FaInstagram className="text-pink-500" />, label: 'Instagram', placeholder: 'https://instagram.com/username' },
-    { key: 'facebook', icon: <FaFacebook className="text-blue-600" />, label: 'Facebook', placeholder: 'https://facebook.com/username' },
-    { key: 'twitter', icon: <FaTwitter className="text-blue-400" />, label: 'Twitter', placeholder: 'https://twitter.com/username' },
-    { key: 'linkedin', icon: <FaLinkedin className="text-blue-700" />, label: 'LinkedIn', placeholder: 'https://linkedin.com/company/username' },
-    { key: 'youtube', icon: <FaYoutube className="text-red-600" />, label: 'YouTube', placeholder: 'https://youtube.com/channel' },
-    { key: 'tiktok', icon: <FaTiktok className="text-black" />, label: 'TikTok', placeholder: 'https://tiktok.com/@username' },
-    { key: 'telegram', icon: <FaTelegram className="text-blue-400" />, label: 'Telegram', placeholder: 'https://t.me/username' },
-    { key: 'snapchat', icon: <FaSnapchat className="text-yellow-500" />, label: 'Snapchat', placeholder: 'https://snapchat.com/add/username' },
+    { key: 'whatsapp', icon: <FaWhatsapp className="text-green-500" />, label: translations.whatsapp, placeholder: '+7 (999) 999-9999' },
+    { key: 'instagram', icon: <FaInstagram className="text-pink-500" />, label: translations.instagram, placeholder: 'https://instagram.com/username' },
+    { key: 'facebook', icon: <FaFacebook className="text-blue-600" />, label: translations.facebook, placeholder: 'https://facebook.com/username' },
+    { key: 'twitter', icon: <FaTwitter className="text-blue-400" />, label: translations.twitter, placeholder: 'https://twitter.com/username' },
+    { key: 'linkedin', icon: <FaLinkedin className="text-blue-700" />, label: translations.linkedin, placeholder: 'https://linkedin.com/company/username' },
+    { key: 'youtube', icon: <FaYoutube className="text-red-600" />, label: translations.youtube, placeholder: 'https://youtube.com/channel' },
+    { key: 'tiktok', icon: <FaTiktok className="text-black" />, label: translations.tiktok, placeholder: 'https://tiktok.com/@username' },
+    { key: 'telegram', icon: <FaTelegram className="text-blue-400" />, label: translations.telegram, placeholder: 'https://t.me/username' },
+    { key: 'snapchat', icon: <FaSnapchat className="text-yellow-500" />, label: translations.snapchat, placeholder: 'https://snapchat.com/add/username' },
   ];
 
   const contactFields = [
-    { key: 'phone', icon: <FaPhone />, label: 'Phone Number', type: 'tel' },
-    { key: 'email', icon: <FaEnvelope />, label: 'Email Address', type: 'email' },
-    { key: 'address', icon: <FaMapMarkerAlt />, label: 'Physical Address', type: 'text' },
-    { key: 'businessHours', icon: <FaGlobe />, label: 'Business Hours', type: 'text' },
+    { key: 'phone', icon: <FaPhone />, label: translations.phoneNumber || 'Phone Number', type: 'tel' },
+    { key: 'email', icon: <FaEnvelope />, label: translations.emailAddress || 'Email Address', type: 'email' },
+    { key: 'address', icon: <FaMapMarkerAlt />, label: translations.physicalAddress || 'Physical Address', type: 'text' },
+    { key: 'businessHours', icon: <FaGlobe />, label: translations.businessHours || 'Business Hours', type: 'text' },
   ];
 
   return (
@@ -149,11 +149,12 @@ const ContactsManagement = () => {
               <button
                 onClick={() => router.push('/admin/dashboard')}
                 className="bg-gray-600 text-white p-3 rounded-full hover:bg-gray-700 transition duration-200 mr-4"
+                title={translations.backToDashboard}
               >
                 <FaArrowLeft />
               </button>
               <h1 className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-500">
-                Manage Contacts & Social Media
+                {translations.manageContactsAndSocialMediaTitle || "Manage Contacts & Social Media"}
               </h1>
             </div>
             <button
@@ -173,7 +174,7 @@ const ContactsManagement = () => {
           <form onSubmit={handleSubmit}>
             {/* Contact Information */}
             <div className="bg-gray-800 bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20 mb-8">
-              <h2 className="text-2xl font-semibold mb-6">Contact Information</h2>
+              <h2 className="text-2xl font-semibold mb-6">{translations.contactInformation || "Contact Information"}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {contactFields.map((field) => (
                   <div key={field.key}>
@@ -195,7 +196,7 @@ const ContactsManagement = () => {
 
             {/* Social Media Links */}
             <div className="bg-gray-800 bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20 mb-8">
-              <h2 className="text-2xl font-semibold mb-6">Social Media Links</h2>
+              <h2 className="text-2xl font-semibold mb-6">{translations.socialMediaLinks || "Social Media Links"}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {socialMediaPlatforms.map((platform) => (
                   <div key={platform.key}>
@@ -215,46 +216,12 @@ const ContactsManagement = () => {
               </div>
             </div>
 
-            {/* WhatsApp Settings */}
-            <div className="bg-gray-800 bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20 mb-8">
-              <h2 className="text-2xl font-semibold mb-6 flex items-center gap-2">
-                <FaWhatsapp className="text-green-500" />
-                WhatsApp Settings
-              </h2>
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    WhatsApp Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    value={contacts.whatsapp}
-                    onChange={(e) => handleChange('whatsapp', e.target.value)}
-                    className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
-                    placeholder="+7 (999) 999-9999"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Default WhatsApp Message Template
-                  </label>
-                  <textarea
-                    value={contacts.whatsappMessage}
-                    onChange={(e) => handleChange('whatsappMessage', e.target.value)}
-                    className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
-                    rows={3}
-                    placeholder="Default message when users click WhatsApp button"
-                  />
-                </div>
-              </div>
-            </div>
-
             {/* Legal & SEO */}
             <div className="bg-gray-800 bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20 mb-8">
-              <h2 className="text-2xl font-semibold mb-6">Legal & SEO Settings</h2>
+              <h2 className="text-2xl font-semibold mb-6">{translations.legalAndSEOSettings || "Legal & SEO Settings"}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2">SEO Description</label>
+                  <label className="block text-sm font-medium mb-2">{translations.seoDescription || "SEO Description"}</label>
                   <textarea
                     value={contacts.seoDescription}
                     onChange={(e) => handleChange('seoDescription', e.target.value)}
@@ -264,7 +231,7 @@ const ContactsManagement = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">SEO Keywords</label>
+                  <label className="block text-sm font-medium mb-2">{translations.seoKeywords || "SEO Keywords"}</label>
                   <textarea
                     value={contacts.seoKeywords}
                     onChange={(e) => handleChange('seoKeywords', e.target.value)}
@@ -274,7 +241,7 @@ const ContactsManagement = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Privacy Policy URL</label>
+                  <label className="block text-sm font-medium mb-2">{translations.privacyPolicyURL || "Privacy Policy URL"}</label>
                   <input
                     type="url"
                     value={contacts.privacyPolicy}
@@ -284,7 +251,7 @@ const ContactsManagement = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Terms of Service URL</label>
+                  <label className="block text-sm font-medium mb-2">{translations.termsOfServiceURL || "Terms of Service URL"}</label>
                   <input
                     type="url"
                     value={contacts.termsOfService}
@@ -303,7 +270,7 @@ const ContactsManagement = () => {
                 className="bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-8 rounded-md font-semibold flex items-center hover:from-blue-600 hover:to-purple-700 transition duration-300 disabled:opacity-50"
               >
                 <FaSave className="mr-2" />
-                {saving ? 'Saving...' : 'Save All Settings'}
+                {saving ? 'Saving...' : (translations.saveAllSettings || 'Save All Settings')}
               </button>
             </div>
           </form>

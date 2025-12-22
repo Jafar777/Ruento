@@ -801,6 +801,39 @@ premiumServices: 'خدماتنا',
       newService: 'خدمة جديدة',
       editServiceTitle: 'تعديل الخدمة',
       deleteConfirmation: 'تأكيد الحذف',
+
+contactsAndSocialMedia: "جهات الاتصال ووسائل التواصل الاجتماعي",
+manageContactsAndSocialMedia: "إدارة جميع معلومات الاتصال وروابط وسائل التواصل الاجتماعي",
+// Page Title
+manageContactsAndSocialMediaTitle: "إدارة جهات الاتصال ووسائل التواصل الاجتماعي",
+
+// Section Headers
+contactInformation: "معلومات الاتصال",
+socialMediaLinks: "روابط وسائل التواصل الاجتماعي",
+whatsappSettings: "إعدادات واتساب",
+legalAndSEOSettings: "الإعدادات القانونية وتحسين محركات البحث",
+
+// Contact Fields
+phoneNumber: "رقم الهاتف",
+emailAddress: "عنوان البريد الإلكتروني",
+physicalAddress: "العنوان الفعلي",
+businessHours: "ساعات العمل",
+
+// WhatsApp Settings
+whatsappPhoneNumber: "رقم هاتف واتساب",
+defaultWhatsappMessage: "نموذج رسالة واتساب الافتراضي",
+
+// SEO Settings
+seoDescription: "وصف تحسين محركات البحث",
+seoKeywords: "كلمات تحسين محركات البحث",
+privacyPolicyURL: "رابط سياسة الخصوصية",
+termsOfServiceURL: "رابط شروط الخدمة",
+
+// Buttons
+saveAllSettings: "حفظ جميع الإعدادات",
+save: "حفظ",
+
+
     
     }
   };

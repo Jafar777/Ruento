@@ -1,4 +1,4 @@
-// src/app/admin/dashboard/page.jsx
+// app/admin/dashboard/page.jsx
 'use client'
 
 import React, { useEffect, useState } from 'react';
@@ -88,15 +88,13 @@ const Dashboard = () => {
       color: "from-orange-500 to-orange-600"
     },
     {
-  title: "Contacts & Social Media",
-  description: "Manage all contact information and social media links",
-  icon: <FaGlobe className="text-white text-2xl" />,
-  path: '/admin/dashboard/contacts',
-  color: "from-teal-500 to-teal-600"
-}
+      title: translations.contactsAndSocialMedia || "Contacts & Social Media",
+      description: translations.manageContactsAndSocialMedia || "Manage all contact information and social media links",
+      icon: <FaGlobe className="text-white text-2xl" />,
+      path: '/admin/dashboard/contacts',
+      color: "from-teal-500 to-teal-600"
+    }
   ];
-
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black p-4 text-white">
@@ -122,9 +120,6 @@ const Dashboard = () => {
             </button>
           </div>
 
-
-
-
           {/* Dashboard Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {cardItems.map((item, index) => (
@@ -144,13 +139,9 @@ const Dashboard = () => {
                 <p className="text-gray-400 mb-4">
                   {item.description}
                 </p>
-
               </div>
             ))}
           </div>
-
-
-
         </div>
       </div>
     </div>
