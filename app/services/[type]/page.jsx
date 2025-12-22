@@ -36,6 +36,7 @@ const ServiceDetailPage = () => {
   const [showBookingForm, setShowBookingForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [activeImage, setActiveImage] = useState(0);
+  const [contacts, setContacts] = useState(null);
 
   // Default service images array
   const defaultImages = [
@@ -44,6 +45,38 @@ const ServiceDetailPage = () => {
     'https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80',
     'https://images.unsplash.com/photo-1488646953014-85cb44e25828?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80'
   ];
+
+  // Fetch contacts on component mount
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        const response = await fetch('/api/contacts');
+        if (response.ok) {
+          const data = await response.json();
+          setContacts(data);
+        }
+      } catch (error) {
+        console.error('Error fetching contacts:', error);
+      }
+    };
+    fetchContacts();
+  }, []);
+
+  const getWhatsAppLink = (customMessage = '') => {
+    if (!contacts?.whatsapp) return '#';
+    
+    let phoneNumber = contacts.whatsapp;
+    if (phoneNumber.includes('wa.me/') || phoneNumber.includes('whatsapp.com/')) {
+      const match = phoneNumber.match(/\/?\+?(\d+)/);
+      if (match) phoneNumber = match[1];
+    }
+    
+    phoneNumber = phoneNumber.replace(/[^\d+]/g, '');
+    const message = customMessage || contacts.whatsappMessage || 'Hello! I am interested in your services.';
+    const encodedMessage = encodeURIComponent(message);
+    
+    return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+  };
 
   useEffect(() => {
     const fetchService = async () => {
@@ -74,46 +107,26 @@ const ServiceDetailPage = () => {
     }
   }, [params.type, translations]);
 
-  const handleBookingSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-
-    try {
-      const response = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...bookingData,
-          serviceId: service?._id,
-          serviceType: service?.type,
-          serviceTitle: service?.title,
-          totalPrice: service?.price * bookingData.travelers
-        }),
-      });
-
-      const data = await response.json();
-
-      if (data.success) {
-        alert(translations.contactSuccess || 'Booking request sent successfully! We will contact you soon.');
-        setShowBookingForm(false);
-        setBookingData({
-          fullName: '',
-          email: '',
-          phone: '',
-          startDate: '',
-          travelers: 1,
-          specialRequests: ''
-        });
-      } else {
-        throw new Error(data.message);
-      }
-    } catch (error) {
-      alert(error.message || 'Error submitting booking');
-    } finally {
-      setSubmitting(false);
-    }
+  const handleBookingSubmit = () => {
+    const message = `Booking request for ${service.title}:
+    Name: ${bookingData.fullName}
+    Email: ${bookingData.email}
+    Phone: ${bookingData.phone}
+    Start Date: ${bookingData.startDate}
+    Travelers: ${bookingData.travelers}
+    Special Requests: ${bookingData.specialRequests}`;
+    
+    const whatsappLink = getWhatsAppLink(message);
+    window.open(whatsappLink, '_blank');
+    setShowBookingForm(false);
+    setBookingData({
+      fullName: '',
+      email: '',
+      phone: '',
+      startDate: '',
+      travelers: 1,
+      specialRequests: ''
+    });
   };
 
   const handleInputChange = (e) => {
@@ -349,7 +362,10 @@ const ServiceDetailPage = () => {
                   </div>
                   
                   <button
-                    onClick={() => setShowBookingForm(true)}
+                    onClick={() => {
+                      const whatsappLink = getWhatsAppLink(`I want to book service: ${service.title}`);
+                      window.open(whatsappLink, '_blank');
+                    }}
                     className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-lg hover:from-blue-700 hover:to-purple-700 transition"
                   >
                     {translations.bookNow || 'احجز الآن'}
@@ -503,15 +519,17 @@ const ServiceDetailPage = () => {
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
                     <FaPhone className="text-white/80" />
-                    <span>+7 (999) 999-9999</span>
+                    <span>{contacts?.phone || '+7 (999) 999-9999'}</span>
                   </div>
                   <div className="flex items-center gap-3">
                     <FaWhatsapp className="text-white/80" />
-                    <span>{translations.available24_7 || 'متاح 24/7'}</span>
+                    <a href={getWhatsAppLink()} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                      {translations.available24_7 || 'متاح 24/7'}
+                    </a>
                   </div>
                   <div className="flex items-center gap-3">
                     <FaEnvelope className="text-white/80" />
-                    <span>help@ruento.com</span>
+                    <span>{contacts?.email || 'help@ruento.com'}</span>
                   </div>
                 </div>
               </div>
@@ -537,7 +555,7 @@ const ServiceDetailPage = () => {
                 </button>
               </div>
 
-              <form onSubmit={handleBookingSubmit}>
+              <form onSubmit={(e) => { e.preventDefault(); handleBookingSubmit(); }}>
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>

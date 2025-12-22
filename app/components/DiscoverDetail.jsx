@@ -1,3 +1,4 @@
+// app/components/DiscoverDetail.jsx
 'use client'
 
 import React, { useState, useEffect } from 'react';
@@ -47,6 +48,39 @@ const DiscoverDetail = () => {
     rooms: 1
   });
   const [autoSlide, setAutoSlide] = useState(true);
+  const [contacts, setContacts] = useState(null);
+
+  // Fetch contacts on component mount
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        const response = await fetch('/api/contacts');
+        if (response.ok) {
+          const data = await response.json();
+          setContacts(data);
+        }
+      } catch (error) {
+        console.error('Error fetching contacts:', error);
+      }
+    };
+    fetchContacts();
+  }, []);
+
+  const getWhatsAppLink = (customMessage = '') => {
+    if (!contacts?.whatsapp) return '#';
+    
+    let phoneNumber = contacts.whatsapp;
+    if (phoneNumber.includes('wa.me/') || phoneNumber.includes('whatsapp.com/')) {
+      const match = phoneNumber.match(/\/?\+?(\d+)/);
+      if (match) phoneNumber = match[1];
+    }
+    
+    phoneNumber = phoneNumber.replace(/[^\d+]/g, '');
+    const message = customMessage || contacts.whatsappMessage || 'Hello! I am interested in your services.';
+    const encodedMessage = encodeURIComponent(message);
+    
+    return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+  };
 
   const amenityIcons = {
     'free-wifi': <FaWifi className="text-blue-500" size={20} />,
@@ -81,7 +115,6 @@ const DiscoverDetail = () => {
       try {
         const response = await fetch(`/api/get-to-know-russia?category=${params.category}&id=${params.id}`);
         const data = await response.json();
-        // Ensure data structure is consistent
         const formattedData = {
           ...data,
           images: data.images || [{ url: '/default-image.jpg' }],
@@ -155,7 +188,8 @@ const DiscoverDetail = () => {
   };
 
   const handleBooking = () => {
-    alert('Booking functionality coming soon!');
+    const whatsappLink = getWhatsAppLink(`I want to book: ${item.title}`);
+    window.open(whatsappLink, '_blank');
     setBookingModal(false);
   };
 
@@ -456,7 +490,13 @@ const DiscoverDetail = () => {
                       </button>
                     </>
                   ) : (
-                    <button className="w-full py-4 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-xl font-bold text-lg hover:shadow-lg transition-all duration-300 hover:scale-[1.02]">
+                    <button 
+                      onClick={() => {
+                        const whatsappLink = getWhatsAppLink(`I want to book experience: ${item.title}`);
+                        window.open(whatsappLink, '_blank');
+                      }}
+                      className="w-full py-4 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-xl font-bold text-lg hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
+                    >
                       {translations.bookExperience || 'Book Experience'}
                     </button>
                   )}
@@ -687,7 +727,18 @@ const DiscoverDetail = () => {
                     {translations.cancel || 'Cancel'}
                   </button>
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={() => {
+                      const message = `Booking request for ${item.title}:
+                      Check-in: ${bookingData.checkIn}
+                      Check-out: ${bookingData.checkOut}
+                      Guests: ${bookingData.guests}
+                      Rooms: ${bookingData.rooms}`;
+                      
+                      const whatsappLink = getWhatsAppLink(message);
+                      window.open(whatsappLink, '_blank');
+                      setBookingModal(false);
+                    }}
                     className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-bold hover:shadow-lg transition hover:scale-[1.02]"
                   >
                     {translations.confirmBooking || 'Confirm Booking'}

@@ -48,6 +48,18 @@ export async function PUT(request) {
     
     const data = await request.json();
     
+    // Format WhatsApp number to ensure it's a valid phone number
+    if (data.whatsapp) {
+      // Remove all non-digit characters except plus
+      let whatsappNumber = data.whatsapp.replace(/[^\d+]/g, '');
+      // Ensure it starts with country code if it doesn't have +
+      if (!whatsappNumber.startsWith('+')) {
+        // Add +7 for Russia if no country code specified
+        whatsappNumber = `+7${whatsappNumber}`;
+      }
+      data.whatsapp = whatsappNumber;
+    }
+    
     // Update or insert contacts
     const result = await db.collection('contacts').updateOne(
       {},

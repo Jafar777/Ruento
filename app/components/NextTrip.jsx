@@ -14,6 +14,7 @@ const NextTrip = () => {
   const [loading, setLoading] = useState(true);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { translations } = useLanguage();
+  const [contacts, setContacts] = useState(null);
 
   const sectionRef = useRef(null);
   const titleRef = useRef(null);
@@ -22,6 +23,38 @@ const NextTrip = () => {
   const destinationsRef = useRef(null);
   const descriptionRef = useRef(null);
   const ctaRef = useRef(null);
+
+  // Fetch contacts on component mount
+  useEffect(() => {
+    const fetchContacts = async () => {
+      try {
+        const response = await fetch('/api/contacts');
+        if (response.ok) {
+          const data = await response.json();
+          setContacts(data);
+        }
+      } catch (error) {
+        console.error('Error fetching contacts:', error);
+      }
+    };
+    fetchContacts();
+  }, []);
+
+  const getWhatsAppLink = (customMessage = '') => {
+    if (!contacts?.whatsapp) return '#';
+    
+    let phoneNumber = contacts.whatsapp;
+    if (phoneNumber.includes('wa.me/') || phoneNumber.includes('whatsapp.com/')) {
+      const match = phoneNumber.match(/\/?\+?(\d+)/);
+      if (match) phoneNumber = match[1];
+    }
+    
+    phoneNumber = phoneNumber.replace(/[^\d+]/g, '');
+    const message = customMessage || contacts.whatsappMessage || 'Hello! I am interested in your services.';
+    const encodedMessage = encodeURIComponent(message);
+    
+    return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+  };
 
   useEffect(() => {
     const fetchTripData = async () => {
@@ -322,7 +355,13 @@ const NextTrip = () => {
 
             {/* CTA Button */}
             <div ref={ctaRef} className="text-center lg:text-left">
-              <button className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full font-semibold text-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg">
+              <button 
+                onClick={() => {
+                  const whatsappLink = getWhatsAppLink(`I want to join the trip on ${formatDate(tripData.date)}`);
+                  window.open(whatsappLink, '_blank');
+                }}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-8 py-4 rounded-full font-semibold text-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
+              >
                 {translations.joinTrip || "Join This Trip"}
               </button>
             </div>
