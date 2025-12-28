@@ -1,0 +1,13 @@
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  tags:
+    - deploy
+  only:
+    - main
+  script:
+    - cd $PROJECT_PATH
+    - git pull
+    - docker compose up -d --build
