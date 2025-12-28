@@ -1,20 +1,81 @@
 // app/api/services/route.js
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/mongodb';
+import mongoose from 'mongoose';
 import Service from '@/models/Service';
+
+// Global connection cache
+let cached = global.mongoose;
+
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
+}
+
+async function connectToDatabase() {
+  if (cached.conn) {
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
+    const opts = {
+      maxPoolSize: 10,
+      serverSelectionTimeoutMS: 5000,
+      socketTimeoutMS: 45000,
+    };
+
+    cached.promise = mongoose.connect(process.env.MONGODB_URI, opts)
+      .then((mongoose) => {
+        console.log('MongoDB connected successfully');
+        return mongoose;
+      })
+      .catch((error) => {
+        console.error('MongoDB connection error:', error);
+        throw error;
+      });
+  }
+
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
+
+  return cached.conn;
+}
 
 // GET all services
 export async function GET() {
   try {
-    await connectDB();
+    console.log('Connecting to MongoDB...');
+    await connectToDatabase();
     
-    const services = await Service.find({});
+    // Check if Service model is properly defined
+    if (!Service) {
+      throw new Error('Service model not found');
+    }
     
-    return NextResponse.json(services, { status: 200 });
+    console.log('Fetching services from database...');
+    const services = await Service.find({}).lean();
+    
+    console.log(`Found ${services.length} services`);
+    
+    // Convert MongoDB documents to plain objects
+    const serializedServices = services.map(service => ({
+      ...service,
+      _id: service._id?.toString() || service._id,
+      createdAt: service.createdAt?.toISOString(),
+      updatedAt: service.updatedAt?.toISOString()
+    }));
+    
+    return NextResponse.json(serializedServices, { status: 200 });
   } catch (error) {
     console.error('Error fetching services:', error);
     return NextResponse.json(
-      { error: 'فشل في جلب البيانات' },
+      { 
+        error: 'فشل في جلب البيانات',
+        message: error.message,
+        services: [] // Return empty array on error
+      },
       { status: 500 } 
     );
   }
@@ -23,12 +84,37 @@ export async function GET() {
 // POST create new service
 export async function POST(request) {
   try {
-    await connectDB();
+    console.log('Connecting to MongoDB for POST...');
+    await connectToDatabase();
     
     const data = await request.json();
+    console.log('Received service data:', data);
     
-    // Ensure data is in Arabic
-    const arabicData = {
+    // Validate required fields
+    if (!data.type || !data.title || !data.description) {
+      return NextResponse.json(
+        { 
+          error: 'بيانات ناقصة',
+          message: 'النوع والعنوان والوصف مطلوبة'
+        },
+        { status: 400 }
+      );
+    }
+    
+    // Check if service with same type already exists
+    const existingService = await Service.findOne({ type: data.type });
+    if (existingService) {
+      return NextResponse.json(
+        { 
+          error: 'الخدمة موجودة بالفعل',
+          message: `الخدمة بنوع "${data.type}" موجودة بالفعل`
+        },
+        { status: 400 }
+      );
+    }
+    
+    // Prepare service data
+    const serviceData = {
       type: data.type || 'خدمة',
       title: data.title || 'عنوان الخدمة',
       description: data.description || 'وصف الخدمة باللغة العربية',
@@ -37,7 +123,7 @@ export async function POST(request) {
       duration: data.duration || '3-7 أيام',
       groupSize: data.groupSize || '2-12 شخص',
       availability: data.availability || 'على مدار السنة',
-      locations: data.locations || ['متعدد'],
+      locations: Array.isArray(data.locations) ? data.locations : (data.locations || ['متعدد']),
       price: data.price || 499,
       priceUnit: data.priceUnit || 'للشخص',
       rating: data.rating || 4.5,
@@ -55,7 +141,7 @@ export async function POST(request) {
         { يوم: 'اليوم الثالث', عنوان: 'الانغماس الثقافي', وصف: 'ورش عمل تقليدية وعروض ثقافية' }
       ],
       contactInfo: data.contactInfo || {
-        هاتف: '+1 (234) 567-890',
+        هاتف: '+7 (999) 999-9999',
         إيميل: 'info@ruento.com',
         دردشة: 'متاحة 24/7'
       },
@@ -67,21 +153,31 @@ export async function POST(request) {
       ]
     };
     
-    const service = new Service(arabicData);
+    console.log('Creating new service with data:', serviceData);
+    
+    const service = new Service(serviceData);
     await service.save();
+    
+    console.log('Service created successfully:', service._id);
     
     return NextResponse.json(
       { 
         success: true, 
         message: 'تم إضافة الخدمة بنجاح',
-        service 
+        service: {
+          ...service.toObject(),
+          _id: service._id.toString()
+        }
       },
       { status: 201 }
     );
   } catch (error) {
     console.error('Error creating service:', error);
     return NextResponse.json(
-      { error: 'فشل في إنشاء الخدمة' },
+      { 
+        error: 'فشل في إنشاء الخدمة',
+        message: error.message
+      },
       { status: 500 }
     );
   }

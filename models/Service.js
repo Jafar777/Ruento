@@ -17,7 +17,8 @@ const serviceSchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ['plans', 'transportation', 'hotels', 'residence', 'restaurants', 'tourist-attractions', 'events', 'shopping', 'museums', 'natural-places']
+    unique: true, // Make type unique
+    trim: true
   },
   title: {
     type: String,

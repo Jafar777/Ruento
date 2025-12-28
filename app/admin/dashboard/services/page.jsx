@@ -73,20 +73,35 @@ const ServicesManagement = () => {
     }
   }, [router]);
 
-  const fetchServices = async () => {
-    try {
-      setMessage(translations.loadingServices || 'Loading services...');
-      const response = await fetch('/api/services');
-      const data = await response.json();
-      setServices(data || []);
-      setMessage('');
-    } catch (error) {
-      console.error('Error fetching services:', error);
-      setMessage(translations.errorLoadingServices || 'Error loading services data');
-    } finally {
-      setLoading(false);
+const fetchServices = async () => {
+  try {
+    setMessage(translations.loadingServices || 'Loading services...');
+    setLoading(true);
+    const response = await fetch('/api/services');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-  };
+    
+    const data = await response.json();
+    
+    // Check if data is an array, if not, default to empty array
+    if (Array.isArray(data)) {
+      setServices(data);
+      setMessage('');
+    } else {
+      console.error('Invalid data format:', data);
+      setServices([]);
+      setMessage(translations.errorLoadingServices || 'Error loading services data');
+    }
+  } catch (error) {
+    console.error('Error fetching services:', error);
+    setServices([]); // Set to empty array to prevent map error
+    setMessage(translations.errorLoadingServices || 'Error loading services data');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSubmit = async (e, service = null) => {
     e.preventDefault();
