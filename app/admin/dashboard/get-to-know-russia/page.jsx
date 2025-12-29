@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '../../../context/LanguageContext';
 import Navbar from '../../../components/Navbar';
-import { FaArrowLeft, FaPlus, FaTrash, FaSave, FaImage, FaUpload, FaBed, FaStar, FaMapMarkerAlt, FaPhone, FaGlobe, FaWifi, FaSwimmingPool, FaCar, FaUtensils, FaDumbbell, FaPaw, FaTv, FaSnowflake, FaShower } from 'react-icons/fa';
+import { FaArrowLeft, FaPlus, FaTrash, FaSave, FaImage, FaUpload, FaBed, FaStar, FaMapMarkerAlt, FaPhone, FaGlobe, FaWifi, FaSwimmingPool, FaCar, FaUtensils, FaDumbbell, FaPaw, FaTv, FaSnowflake, FaShower, FaDollarSign } from 'react-icons/fa';
 
 const RussiaCategoriesManager = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -117,7 +117,7 @@ const addItem = (category) => {
             address: '',
             phone: '',
             website: '',
-            priceRange: '',
+            priceStartsFrom: '',
             rating: '',
             amenities: [],
           } : {}),
@@ -310,10 +310,7 @@ const addItem = (category) => {
   }
 
   const categoryTypes = [
-    { key: 'restaurants', title: translations.restaurants || 'Restaurants', icon: '🍽️' },
-    { key: 'touristAttractions', title: translations.touristAttractions || 'Tourist Attractions', icon: '🏛️' },
     { key: 'events', title: translations.events || 'Events', icon: '🎪' },
-    { key: 'shopping', title: translations.shopping || 'Shopping', icon: '🛍️' },
     { key: 'museums', title: translations.museums || 'Museums', icon: '🏛️' },
     { key: 'naturalPlaces', title: translations.naturalPlaces || 'Natural Places', icon: '🏞️' },
     { key: 'hotels', title: translations.hotels || 'Hotels', icon: '🏨' }
@@ -488,20 +485,27 @@ const addItem = (category) => {
                           </div>
 
                           <div>
-                            <label className="block text-sm font-medium mb-2">
-                              {translations.priceRange || 'Price Range'}
+                            <label className=" text-sm font-medium mb-2 flex items-center">
+                              <FaDollarSign className="mr-2" />
+                              {translations.priceStartsFrom || 'Price Starts From'}
                             </label>
-                            <select
-                              value={item.priceRange}
-                              onChange={(e) => updateItem(activeCategory, itemIndex, 'priceRange', e.target.value)}
-                              className="w-full p-3 bg-gray-700 rounded-md text-white"
-                            >
-                              <option value="">Select price range</option>
-                              <option value="$">$ (Budget)</option>
-                              <option value="$$">$$ (Moderate)</option>
-                              <option value="$$$">$$$ (Expensive)</option>
-                              <option value="$$$$">$$$$ (Luxury)</option>
-                            </select>
+                            <div className="flex">
+                              <span className="p-3 bg-gray-600 rounded-l-md border-r border-gray-500 flex items-center">
+                                $
+                              </span>
+                              <input
+                                type="number"
+                                min="0"
+                                step="1"
+                                value={item.priceStartsFrom || ''}
+                                onChange={(e) => updateItem(activeCategory, itemIndex, 'priceStartsFrom', e.target.value)}
+                                className="w-full p-3 bg-gray-700 rounded-r-md text-white"
+                                placeholder="299"
+                              />
+                            </div>
+                            <p className="text-xs text-gray-400 mt-1">
+                              {translations.priceStartsFromDesc || 'Enter the starting price per night (in USD)'}
+                            </p>
                           </div>
                         </div>
 

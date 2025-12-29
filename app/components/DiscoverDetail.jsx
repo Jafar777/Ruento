@@ -30,7 +30,8 @@ import {
   FaConciergeBell,
   FaWind,
   FaChevronLeft,
-  FaChevronRight
+  FaChevronRight,
+  FaDollarSign
 } from 'react-icons/fa';
 
 const DiscoverDetail = () => {
@@ -120,7 +121,7 @@ const DiscoverDetail = () => {
           images: data.images || [{ url: '/default-image.jpg' }],
           amenities: data.amenities || [],
           rating: data.rating || 4.5,
-          priceRange: data.priceRange || '$$$'
+          priceStartsFrom: data.priceStartsFrom || ''
         };
         setItem(formattedData);
       } catch (error) {
@@ -166,25 +167,6 @@ const DiscoverDetail = () => {
         size={20}
       />
     ));
-  };
-
-  const renderPriceRange = (priceRange) => {
-    const ranges = {
-      '$': { label: translations.budget || 'Budget', color: 'text-green-600' },
-      '$$': { label: translations.moderate || 'Moderate', color: 'text-blue-600' },
-      '$$$': { label: translations.expensive || 'Expensive', color: 'text-purple-600' },
-      '$$$$': { label: translations.luxury || 'Luxury', color: 'text-amber-600' }
-    };
-    
-    const range = ranges[priceRange] || { label: 'N/A', color: 'text-gray-600' };
-    
-    return (
-      <div className={`inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r ${range.color.replace('text-', 'from-')}/10 ${range.color}`}>
-        <FaMoneyBillWave className="mr-2" />
-        <span className="font-bold">{priceRange}</span>
-        <span className="ml-2">• {range.label}</span>
-      </div>
-    );
   };
 
   const handleBooking = () => {
@@ -371,7 +353,6 @@ const DiscoverDetail = () => {
                   </div>
                 )}
                 
-                {item.priceRange && renderPriceRange(item.priceRange)}
               </div>
             </div>
           </div>
@@ -390,40 +371,6 @@ const DiscoverDetail = () => {
               </h2>
               <div className="prose prose-lg max-w-none text-gray-600 leading-relaxed">
                 <p className="text-lg mb-6">{item.description}</p>
-                
-                {isHotel && (
-                  <>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">
-                      {translations.whatMakesSpecial || 'What Makes This Special'}
-                    </h3>
-                    <ul className="space-y-4 mb-6">
-                      <li className="flex items-start gap-3">
-                        <div className="p-2 bg-blue-50 rounded-lg">
-                          <FaConciergeBell className="text-blue-600 text-lg" />
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-900">{translations.personalizedConcierge || 'Personalized concierge service available 24/7'}</span>
-                        </div>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <div className="p-2 bg-green-50 rounded-lg">
-                          <FaUsers className="text-green-600 text-lg" />
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-900">{translations.exclusiveAccess || 'Exclusive access to local experiences and tours'}</span>
-                        </div>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <div className="p-2 bg-purple-50 rounded-lg">
-                          <FaCalendar className="text-purple-600 text-lg" />
-                        </div>
-                        <div>
-                          <span className="font-medium text-gray-900">{translations.flexibleBooking || 'Flexible booking and cancellation policy'}</span>
-                        </div>
-                      </li>
-                    </ul>
-                  </>
-                )}
               </div>
             </div>
 
@@ -461,23 +408,28 @@ const DiscoverDetail = () => {
                 <div className="p-6 border-b border-gray-100">
                   <div className="flex justify-between items-start mb-6">
                     <div>
-                      <div className="text-2xl font-bold text-gray-900">
-                        {isHotel ? translations.fromPrice || 'From $299' : translations.bookExperience || 'Experience'}
-                      </div>
-                      <div className="text-sm text-gray-500 mt-1">
-                        {translations.perNight || 'per night'}
-                      </div>
+                      {item.priceStartsFrom ? (
+                        <>
+                          <div className="text-sm text-gray-600 mb-1 flex items-center">
+                            <FaDollarSign className="mr-1" />
+                            {translations.priceStartsFrom || 'Price starts from'}
+                          </div>
+                          <div className="text-2xl font-bold text-gray-900">
+                            ${item.priceStartsFrom}
+                            <span className="text-lg font-normal text-gray-600 ml-1">
+                              {translations.perNight || '/night'}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-500 mt-1">
+                            {translations.taxesFeesIncluded || 'Includes taxes & fees'}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="text-2xl font-bold text-gray-900">
+                          {translations.contactForPrice || 'Contact for price'}
+                        </div>
+                      )}
                     </div>
-                    {item.rating && (
-                      <div className="text-right">
-                        <div className="flex items-center justify-end gap-1 mb-1">
-                          {renderStars(parseInt(item.rating))}
-                        </div>
-                        <div className="text-sm text-gray-600">
-                          {translations.excellentReviews || 'Excellent • 128 reviews'}
-                        </div>
-                      </div>
-                    )}
                   </div>
                   
                   {isHotel ? (
@@ -696,27 +648,32 @@ const DiscoverDetail = () => {
                   </div>
                 </div>
                 
-                <div className="bg-blue-50 rounded-xl p-6 mb-6">
-                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div>
-                      <div className="text-sm text-gray-600">
-                        {translations.totalPrice || 'Total Price'}
+                {/* Price Calculation */}
+                {item.priceStartsFrom && (
+                  <div className="bg-blue-50 rounded-xl p-6 mb-6">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                      <div>
+                        <div className="text-sm text-gray-600">
+                          {translations.totalPrice || 'Total Price'}
+                        </div>
+                        <div className="text-3xl font-bold text-gray-900">
+                          ${parseInt(item.priceStartsFrom) * bookingData.rooms * 5}
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          {translations.forNights?.replace('{nights}', '5') || 'for 5 nights'} • {translations.includesTaxes || 'Includes taxes & fees'}
+                        </div>
                       </div>
-                      <div className="text-3xl font-bold text-gray-900">$1,497</div>
-                      <div className="text-sm text-gray-600">
-                        {translations.includesTaxes || 'for 5 nights • Includes taxes & fees'}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-sm text-green-600 mb-1">
-                        25% {translations.off || 'off'}
-                      </div>
-                      <div className="text-lg font-semibold text-gray-900">
-                        {translations.saveAmount || 'Save $499'}
+                      <div className="text-right">
+                        <div className="text-sm text-green-600 mb-1">
+                          25% {translations.off || 'off'}
+                        </div>
+                        <div className="text-lg font-semibold text-gray-900">
+                          {translations.saveAmount?.replace('{amount}', Math.round(parseInt(item.priceStartsFrom) * 0.25)) || `Save $${Math.round(parseInt(item.priceStartsFrom) * 0.25)}`}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
                 
                 <div className="flex flex-col sm:flex-row gap-4">
                   <button
@@ -733,7 +690,8 @@ const DiscoverDetail = () => {
                       Check-in: ${bookingData.checkIn}
                       Check-out: ${bookingData.checkOut}
                       Guests: ${bookingData.guests}
-                      Rooms: ${bookingData.rooms}`;
+                      Rooms: ${bookingData.rooms}
+                      ${item.priceStartsFrom ? `Estimated Price: $${parseInt(item.priceStartsFrom) * bookingData.rooms * 5} (for 5 nights)` : ''}`;
                       
                       const whatsappLink = getWhatsAppLink(message);
                       window.open(whatsappLink, '_blank');

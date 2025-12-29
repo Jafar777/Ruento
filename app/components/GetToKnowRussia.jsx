@@ -5,7 +5,6 @@ import { useLanguage } from '../context/LanguageContext';
 import Image from 'next/image';
 import Link from 'next/link';
 import { 
-
   FaMapMarkerAlt, 
   FaStar, 
   FaWifi, 
@@ -22,7 +21,8 @@ import {
   FaRegHeart,
   FaHeart,
   FaShare,
-  FaBookmark
+  FaBookmark,
+  FaDollarSign
 } from 'react-icons/fa';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -225,29 +225,6 @@ const GetToKnowRussia = ({ id }) => {
     return stars;
   };
 
-  const renderPriceRange = (priceRange) => {
-    const ranges = {
-      '$': translations.budget || 'Budget',
-      '$$': translations.moderate || 'Moderate',
-      '$$$': translations.expensive || 'Expensive',
-      '$$$$': translations.luxury || 'Luxury'
-    };
-    
-    const priceSymbols = {
-      '$': '$',
-      '$$': '$$',
-      '$$$': '$$$',
-      '$$$$': '$$$$'
-    };
-    
-    return (
-      <div className="flex items-center">
-        <span className="text-lg font-bold text-green-600">{priceSymbols[priceRange]}</span>
-        <span className="ml-2 text-sm text-gray-500">• {ranges[priceRange] || 'N/A'}</span>
-      </div>
-    );
-  };
-
   const truncateText = (text, length = 100) => {
     if (!text) return translations.exploreCulture || 'Experience the best of Russian culture and hospitality';
     if (text.length <= length) return text;
@@ -280,37 +257,35 @@ const GetToKnowRussia = ({ id }) => {
           </p>
         </div>
 
-<div className="flex flex-wrap justify-center gap-3 mb-16">
-  {categories.map((category, index) => {
-    const config = categoryConfig[category.type] || {};
-    return (
-      <button
-        key={category.type}
-        ref={el => categoryButtonsRef.current[index] = el}
-        onClick={() => setActiveCategory(category.type)}
-        className={`group px-6 py-3 rounded-xl transition-all duration-300 flex items-center border ${
-          activeCategory === category.type
-            ? `bg-gradient-to-r ${config.color} text-white shadow-lg scale-105`
-            : `bg-white text-gray-700 ${config.buttonColor} border-gray-200 hover:shadow-md`
-        }`}
-      >
-        <span className="text-xl mr-3">{config.icon}</span>
-        {/* FIX: Use config.title (translation) first, then fallback to API title */}
-        <span className="font-medium">{config.title || category.title || category.type}</span>
-        <span className={`ml-3 text-sm px-2 py-1 rounded-full ${
-          activeCategory === category.type 
-            ? 'bg-white/20' 
-            : 'bg-gray-100'
-        }`}>
-          {category.items.length}
-        </span>
-      </button>
-    );
-  })}
-</div>
+        <div className="flex flex-wrap justify-center gap-3 mb-16">
+          {categories.map((category, index) => {
+            const config = categoryConfig[category.type] || {};
+            return (
+              <button
+                key={category.type}
+                ref={el => categoryButtonsRef.current[index] = el}
+                onClick={() => setActiveCategory(category.type)}
+                className={`group px-6 py-3 rounded-xl transition-all duration-300 flex items-center border ${
+                  activeCategory === category.type
+                    ? `bg-gradient-to-r ${config.color} text-white shadow-lg scale-105`
+                    : `bg-white text-gray-700 ${config.buttonColor} border-gray-200 hover:shadow-md`
+                }`}
+              >
+                <span className="text-xl mr-3">{config.icon}</span>
+                <span className="font-medium">{config.title || category.title || category.type}</span>
+                <span className={`ml-3 text-sm px-2 py-1 rounded-full ${
+                  activeCategory === category.type 
+                    ? 'bg-white/20' 
+                    : 'bg-gray-100'
+                }`}>
+                  {category.items.length}
+                </span>
+              </button>
+            );
+          })}
+        </div>
 
         {categories.map((category) => {
-          // Define config here so it's accessible in the entire category block
           const config = categoryConfig[category.type] || {};
           
           return (
@@ -372,7 +347,7 @@ const GetToKnowRussia = ({ id }) => {
                               <div className="absolute top-4 left-4">
                                 <span className="bg-white/90 backdrop-blur-sm text-gray-800 text-sm font-medium px-3 py-1.5 rounded-full flex items-center">
                                   <span className="mr-2">{config.icon}</span>
-<span className="font-medium">{config.title || category.title || category.type}</span>
+                                  <span className="font-medium">{config.title || category.title || category.type}</span>
                                 </span>
                               </div>
                               
@@ -395,16 +370,40 @@ const GetToKnowRussia = ({ id }) => {
                             <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 line-clamp-1">
                               {item.title}
                             </h3>
-                            {category.type === 'hotels' && item.priceRange && (
-                              <div className="text-right">
-                                {renderPriceRange(item.priceRange)}
-                              </div>
-                            )}
+
                           </div>
 
                           <p className="text-gray-600 mb-6 line-clamp-2">
                             {truncateText(item.description, 80)}
                           </p>
+
+                          {/* Price Display for Hotels */}
+                          {category.type === 'hotels' && item.priceStartsFrom && (
+                            <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="flex items-center text-sm text-gray-600 mb-1">
+                                    <FaDollarSign className="mr-1" />
+                                    {translations.priceStartsFrom || 'Price starts from'}
+                                  </div>
+                                  <div className="text-2xl font-bold text-gray-900">
+                                    ${item.priceStartsFrom}
+                                    <span className="text-lg font-normal text-gray-600 ml-1">
+                                      {translations.perNight || '/night'}
+                                    </span>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-sm text-green-600 font-medium">
+                                    {translations.bestPrice || 'Best Price'}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {translations.includesTaxes || 'Includes taxes & fees'}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          )}
 
                           <div className="mb-6">
                             {category.type === 'hotels' && item.amenities && item.amenities.slice(0, 3).map((amenity, index) => (
@@ -415,17 +414,9 @@ const GetToKnowRussia = ({ id }) => {
                                 {amenity}
                               </span>
                             ))}
-                            
-                            {category.type !== 'hotels' && (
-                              <div className="flex items-center text-sm text-gray-500">
-                                <FaMapMarkerAlt className="mr-2 text-blue-500" />
-                                <span>{translations.primeLocation || 'Prime Location'}</span>
-                              </div>
-                            )}
                           </div>
 
                           <div className="flex justify-center items-center pt-4 border-t border-gray-100">
-                            
                             <Link
                               href={`/discover/${category.type}/${item.id}?slug=${item.slug}`}
                               className="group/btn w-full flex items-center justify-center px-6 py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl hover:shadow-lg transition-all duration-300 hover:-translate-y-0.5"

@@ -147,7 +147,6 @@ export const LanguageProvider = ({ children }) => {
       exploreCulture: 'Explore the rich culture, breathtaking landscapes, and unique experiences that make Russia extraordinary',
       comingSoon: 'Coming Soon',
       curatingExperiences: 'We\'re curating the best {category} experiences for you.',
-      primeLocation: 'Prime Location',
       explore: 'Explore',
       viewAll: 'View All',
       loadingExperiences: 'Loading experiences...',
@@ -184,7 +183,7 @@ export const LanguageProvider = ({ children }) => {
       
       // Detail page translations
       aboutExperience: 'About This Experience',
-      whatMakesSpecial: 'What Makes This Special',
+
       personalizedConcierge: 'Personalized concierge service available 24/7',
       exclusiveAccess: 'Exclusive access to local experiences and tours',
       flexibleBooking: 'Flexible booking and cancellation policy',
@@ -219,8 +218,7 @@ export const LanguageProvider = ({ children }) => {
       bookNow: 'Book Now',
       saveForLater: 'Save for Later',
       bookExperience: 'Book Experience',
-      perNight: 'per night',
-      excellentReviews: 'Excellent • 128 reviews',
+
       visitWebsite: 'Visit Website',
       
       // Hotel specific
@@ -499,7 +497,6 @@ export const LanguageProvider = ({ children }) => {
       exploreCulture: 'استكشف الثقافة الغنية، والمناظر الطبيعية الخلابة، والتجارب الفريدة التي تجعل روسيا استثنائية',
       comingSoon: 'قريباً',
       curatingExperiences: 'نحن نعد أفضل تجارب {category} لك.',
-      primeLocation: 'موقع ممتاز',
       explore: 'استكشف',
       viewAll: 'عرض الكل',
       loadingExperiences: 'جاري تحميل التجارب...',
@@ -536,7 +533,7 @@ export const LanguageProvider = ({ children }) => {
       
       // Detail page translations
       aboutExperience: 'حول هذه التجربة',
-      whatMakesSpecial: 'ما الذي يجعلها مميزة',
+
       personalizedConcierge: 'خدمة الكونسيرج الشخصية متاحة 24/7',
       exclusiveAccess: 'وصول حصري للتجارب المحلية والجولات',
       flexibleBooking: 'سياسة حجز وإلغاء مرنة',
@@ -571,8 +568,6 @@ export const LanguageProvider = ({ children }) => {
       bookNow: 'احجز الآن',
       saveForLater: 'حفظ لوقت لاحق',
       bookExperience: 'احجز التجربة',
-      perNight: 'لليلة الواحدة',
-      excellentReviews: 'ممتاز • 128 تقييم',
       visitWebsite: 'زيارة الموقع',
       
       // Hotel specific

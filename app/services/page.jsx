@@ -44,13 +44,6 @@ const ServicesPage = () => {
         count: 0
       },
       { 
-        id: 'plans', 
-        name: translations.plans || 'الخطط السياحية', 
-        icon: '📋',
-        color: 'from-blue-500 to-cyan-500',
-        count: 0
-      },
-      { 
         id: 'transportation', 
         name: translations.transportation || 'خدمات النقل', 
         icon: '🚗',
@@ -59,32 +52,19 @@ const ServicesPage = () => {
       },
       { 
         id: 'hotels', 
-        name: translations.hotels || 'الفنادق والإقامة', 
+        name: translations.hotels || 'الفنادق ', 
         icon: '🏨',
         color: 'from-orange-500 to-red-500',
         count: 0
       },
       { 
         id: 'residence', 
-        name: translations.residence || 'شقق الإقامة', 
+        name: translations.residence || ' الإقامة', 
         icon: '🏠',
         color: 'from-yellow-500 to-amber-500',
         count: 0
       },
-      { 
-        id: 'restaurants', 
-        name: translations.restaurants || 'المطاعم', 
-        icon: '🍽️',
-        color: 'from-pink-500 to-rose-500',
-        count: 0
-      },
-      { 
-        id: 'tourist-attractions', 
-        name: translations.touristAttractions || 'المعالم السياحية', 
-        icon: '🏰',
-        color: 'from-indigo-500 to-blue-500',
-        count: 0
-      },
+
       { 
         id: 'events', 
         name: translations.events || 'الفعاليات', 
@@ -92,27 +72,6 @@ const ServicesPage = () => {
         color: 'from-teal-500 to-green-500',
         count: 0
       },
-      { 
-        id: 'shopping', 
-        name: translations.shopping || 'التسوق', 
-        icon: '🛍️',
-        color: 'from-purple-500 to-pink-500',
-        count: 0
-      },
-      { 
-        id: 'museums', 
-        name: translations.museums || 'المتاحف', 
-        icon: '🏛️',
-        color: 'from-gray-600 to-gray-800',
-        count: 0
-      },
-      { 
-        id: 'natural-places', 
-        name: translations.naturalPlaces || 'الأماكن الطبيعية', 
-        icon: '🏞️',
-        color: 'from-lime-500 to-green-500',
-        count: 0
-      }
     ];
     setCategories(initialCategories);
   }, [translations]); // Re-run when translations change

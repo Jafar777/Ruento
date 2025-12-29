@@ -61,7 +61,7 @@ const ServicesManagement = () => {
   const { translations, currentLanguage } = useLanguage();
   const router = useRouter();
 
-  const popularEmojis = ['📋', '🚗', '🏨', '🏠', '✈️', '🏛️', '🎯', '🛎️', '🚕', '🏢', '🌍', '🗺️'];
+  const popularEmojis = ['🚗','🏨','🏠','🎪'];
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
