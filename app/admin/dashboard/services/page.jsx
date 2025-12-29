@@ -11,10 +11,10 @@ import Link from 'next/link';
 const ServicesManagement = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [services, setServices] = useState([]);
-  const [newService, setNewService] = useState({ 
-    type: '', 
-    title: '', 
-    description: '', 
+  const [newService, setNewService] = useState({
+    type: '',
+    title: '',
+    description: '',
     icon: '📋',
     images: [],
     duration: '3-7 أيام',
@@ -49,7 +49,7 @@ const ServicesManagement = () => {
       'سياحة مستدامة'
     ]
   });
-  
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -61,7 +61,7 @@ const ServicesManagement = () => {
   const { translations, currentLanguage } = useLanguage();
   const router = useRouter();
 
-  const popularEmojis = ['🚗','🏨','🏠','🎪'];
+  const popularEmojis = ['🚗', '🏨', '🏠', '🎪'];
 
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -73,35 +73,35 @@ const ServicesManagement = () => {
     }
   }, [router]);
 
-const fetchServices = async () => {
-  try {
-    setMessage(translations.loadingServices || 'Loading services...');
-    setLoading(true);
-    const response = await fetch('/api/services');
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    
-    // Check if data is an array, if not, default to empty array
-    if (Array.isArray(data)) {
-      setServices(data);
-      setMessage('');
-    } else {
-      console.error('Invalid data format:', data);
-      setServices([]);
+  const fetchServices = async () => {
+    try {
+      setMessage(translations.loadingServices || 'Loading services...');
+      setLoading(true);
+      const response = await fetch('/api/services');
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+
+      // Check if data is an array, if not, default to empty array
+      if (Array.isArray(data)) {
+        setServices(data);
+        setMessage('');
+      } else {
+        console.error('Invalid data format:', data);
+        setServices([]);
+        setMessage(translations.errorLoadingServices || 'Error loading services data');
+      }
+    } catch (error) {
+      console.error('Error fetching services:', error);
+      setServices([]); // Set to empty array to prevent map error
       setMessage(translations.errorLoadingServices || 'Error loading services data');
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    console.error('Error fetching services:', error);
-    setServices([]); // Set to empty array to prevent map error
-    setMessage(translations.errorLoadingServices || 'Error loading services data');
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   const handleSubmit = async (e, service = null) => {
     e.preventDefault();
@@ -128,10 +128,10 @@ const fetchServices = async () => {
         setShowAddForm(false);
         setEditingService(null);
         // Reset new service form
-        setNewService({ 
-          type: '', 
-          title: '', 
-          description: '', 
+        setNewService({
+          type: '',
+          title: '',
+          description: '',
           icon: '📋',
           images: [],
           duration: '3-7 أيام',
@@ -209,10 +209,10 @@ const fetchServices = async () => {
     setEditingService(null);
     setShowAddForm(false);
     // Reset new service form
-    setNewService({ 
-      type: '', 
-      title: '', 
-      description: '', 
+    setNewService({
+      type: '',
+      title: '',
+      description: '',
       icon: '📋',
       images: [],
       duration: '3-7 أيام',
@@ -259,13 +259,13 @@ const fetchServices = async () => {
 
   const handleNestedChange = (parentField, field, value) => {
     if (editingService) {
-      setEditingService({ 
-        ...editingService, 
+      setEditingService({
+        ...editingService,
         [parentField]: { ...editingService[parentField], [field]: value }
       });
     } else {
-      setNewService({ 
-        ...newService, 
+      setNewService({
+        ...newService,
         [parentField]: { ...newService[parentField], [field]: value }
       });
     }
@@ -273,15 +273,15 @@ const fetchServices = async () => {
 
   const addFeature = () => {
     if (!newFeature.trim()) return;
-    
+
     if (editingService) {
-      setEditingService({ 
-        ...editingService, 
+      setEditingService({
+        ...editingService,
         features: [...editingService.features, newFeature.trim()]
       });
     } else {
-      setNewService({ 
-        ...newService, 
+      setNewService({
+        ...newService,
         features: [...newService.features, newFeature.trim()]
       });
     }
@@ -304,15 +304,15 @@ const fetchServices = async () => {
 
   const addBenefit = () => {
     if (!newBenefit.trim()) return;
-    
+
     if (editingService) {
-      setEditingService({ 
-        ...editingService, 
+      setEditingService({
+        ...editingService,
         benefits: [...editingService.benefits, newBenefit.trim()]
       });
     } else {
-      setNewService({ 
-        ...newService, 
+      setNewService({
+        ...newService,
         benefits: [...newService.benefits, newBenefit.trim()]
       });
     }
@@ -335,15 +335,15 @@ const fetchServices = async () => {
 
   const addItinerary = () => {
     if (!newItinerary.يوم.trim() || !newItinerary.عنوان.trim() || !newItinerary.وصف.trim()) return;
-    
+
     if (editingService) {
-      setEditingService({ 
-        ...editingService, 
+      setEditingService({
+        ...editingService,
         itinerary: [...editingService.itinerary, { ...newItinerary }]
       });
     } else {
-      setNewService({ 
-        ...newService, 
+      setNewService({
+        ...newService,
         itinerary: [...newService.itinerary, { ...newItinerary }]
       });
     }
@@ -364,81 +364,81 @@ const fetchServices = async () => {
     }
   };
 
-const handleImageUpload = async (e) => {
-  const files = Array.from(e.target.files);
-  if (!files.length) return;
+  const handleImageUpload = async (e) => {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
 
-  setMessage(translations.uploadingImages || 'Uploading images...');
+    setMessage(translations.uploadingImages || 'Uploading images...');
 
-  try {
-    // IMPORTANT: Make sure these environment variables are properly set
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'ddy7qrjck';
-    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'ruento';
-    
-    // For debugging - log the env variables
-    console.log('Cloudinary Config:', {
-      cloudName,
-      uploadPreset,
-      hasApiKey: !!process.env.CLOUDINARY_API_KEY,
-      hasApiSecret: !!process.env.CLOUDINARY_API_SECRET
-    });
+    try {
+      // IMPORTANT: Make sure these environment variables are properly set
+      const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'ddy7qrjck';
+      const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || 'ruento';
 
-    const uploadPromises = files.map(async (file) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('upload_preset', uploadPreset);
-      
-      // Add timestamp and folder for better organization
-      formData.append('timestamp', Math.round((new Date()).getTime() / 1000));
-      formData.append('folder', 'ruento/services');
-      
-      // IMPORTANT: Use the correct API endpoint
-      const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/upload`;
-      
-      console.log('Uploading to:', uploadUrl);
-      
-      const response = await fetch(uploadUrl, {
-        method: 'POST',
-        body: formData,
-        // No headers needed for FormData
+      // For debugging - log the env variables
+      console.log('Cloudinary Config:', {
+        cloudName,
+        uploadPreset,
+        hasApiKey: !!process.env.CLOUDINARY_API_KEY,
+        hasApiSecret: !!process.env.CLOUDINARY_API_SECRET
       });
-      
-      const data = await response.json();
-      console.log('Cloudinary response:', data);
-      
-      if (data.secure_url) {
-        return data.secure_url;
+
+      const uploadPromises = files.map(async (file) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', uploadPreset);
+
+        // Add timestamp and folder for better organization
+        formData.append('timestamp', Math.round((new Date()).getTime() / 1000));
+        formData.append('folder', 'ruento/services');
+
+        // IMPORTANT: Use the correct API endpoint
+        const uploadUrl = `https://api.cloudinary.com/v1_1/${cloudName}/upload`;
+
+        console.log('Uploading to:', uploadUrl);
+
+        const response = await fetch(uploadUrl, {
+          method: 'POST',
+          body: formData,
+          // No headers needed for FormData
+        });
+
+        const data = await response.json();
+        console.log('Cloudinary response:', data);
+
+        if (data.secure_url) {
+          return data.secure_url;
+        } else {
+          console.error('Upload failed:', data);
+          throw new Error(data.error?.message || 'Image upload failed');
+        }
+      });
+
+      const uploadedUrls = await Promise.all(uploadPromises);
+      console.log('Uploaded URLs:', uploadedUrls);
+
+      if (editingService) {
+        setEditingService({
+          ...editingService,
+          images: [...(editingService.images || []), ...uploadedUrls]
+        });
       } else {
-        console.error('Upload failed:', data);
-        throw new Error(data.error?.message || 'Image upload failed');
+        setNewService({
+          ...newService,
+          images: [...(newService.images || []), ...uploadedUrls]
+        });
       }
-    });
 
-    const uploadedUrls = await Promise.all(uploadPromises);
-    console.log('Uploaded URLs:', uploadedUrls);
+      setMessage(translations.imagesUploadedSuccess || 'Images uploaded successfully!');
 
-    if (editingService) {
-      setEditingService({ 
-        ...editingService, 
-        images: [...(editingService.images || []), ...uploadedUrls] 
-      });
-    } else {
-      setNewService({ 
-        ...newService, 
-        images: [...(newService.images || []), ...uploadedUrls] 
-      });
+      // Clear message after 3 seconds
+      setTimeout(() => setMessage(''), 3000);
+
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      setMessage(error.message || translations.errorUploadingImages || 'Error uploading images');
     }
-    
-    setMessage(translations.imagesUploadedSuccess || 'Images uploaded successfully!');
-    
-    // Clear message after 3 seconds
-    setTimeout(() => setMessage(''), 3000);
-    
-  } catch (error) {
-    console.error('Error uploading images:', error);
-    setMessage(error.message || translations.errorUploadingImages || 'Error uploading images');
-  }
-};
+  };
 
   const removeImage = (imageIndex) => {
     if (editingService) {
@@ -543,15 +543,53 @@ const handleImageUpload = async (e) => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                       <label className="block text-sm font-medium mb-2">{translations.serviceType}</label>
-                      <input
-                        type="text"
-                        value={formData.type}
-                        onChange={(e) => handleFormChange('type', e.target.value)}
-                        className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
-                        placeholder={translations.serviceTypePlaceholder}
-                        required
-                        disabled={!!editingService}
-                      />
+                      <div className="flex flex-col space-y-2">
+                        <select
+                          value={formData.type}
+                          onChange={(e) => handleFormChange('type', e.target.value)}
+                          className="w-full p-3 bg-gray-500 bg-opacity-5 border border-white border-opacity-20 rounded-md text-white"
+                          required
+                          disabled={!!editingService}
+                        >
+                          <option value="">اختر نوع الخدمة</option>
+                          <optgroup label="اللغة العربية">
+                            <option value="إقامة">إقامة 🏠 (سكن خاص، شقق، فيلات)</option>
+                            <option value="فنادق">فنادق 🏨 (فنادق، منتجعات، أماكن إقامة فاخرة)</option>
+                            <option value="نقل">نقل 🚗 (مواصلات، سيارات، نقل جماعي)</option>
+                            <option value="فعاليات">فعاليات 🎪 (حفلات، معارض، مناسبات، أنشطة)</option>
+                          </optgroup>
+                          <optgroup label="English">
+                            <option value="residence">Residence 🏠 (Private stays, apartments, villas)</option>
+                            <option value="hotels">Hotels 🏨 (Hotels, resorts, luxury accommodations)</option>
+                            <option value="transportation">Transportation 🚗 (Transport, cars, group transfers)</option>
+                            <option value="events">Events 🎪 (Parties, exhibitions, occasions, activities)</option>
+                          </optgroup>
+                        </select>
+
+                        {/* Display current selection info */}
+                        {formData.type && (
+                          <div className="flex items-center p-3 bg-blue-900 bg-opacity-20 rounded-md border border-blue-500 border-opacity-30">
+                            <span className="text-2xl mr-3">
+                              {formData.type === 'إقامة' || formData.type === 'residence' ? '🏠' :
+                                formData.type === 'فنادق' || formData.type === 'hotels' ? '🏨' :
+                                  formData.type === 'نقل' || formData.type === 'transportation' ? '🚗' : '🎪'}
+                            </span>
+                            <div>
+                              <p className="font-medium">الخدمة المختارة: <span className="text-blue-300">{formData.type}</span></p>
+                              <p className="text-sm text-gray-300">
+                                {formData.type === 'إقامة' || formData.type === 'residence' ? 'سكن خاص، شقق، فيلات' :
+                                  formData.type === 'فنادق' || formData.type === 'hotels' ? 'فنادق، منتجعات، أماكن إقامة فاخرة' :
+                                    formData.type === 'نقل' || formData.type === 'transportation' ? 'مواصلات، سيارات، نقل جماعي' :
+                                      'حفلات، معارض، مناسبات، أنشطة'}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                        <p className="text-xs text-blue-300 mt-1">
+                          يمكنك اختيار النوع بالإنجليزية أو العربية. لكل خدمة رمز إيموجي خاص بها.
+                        </p>
+                      </div>
                       {editingService && (
                         <p className="text-xs text-gray-400 mt-1 flex items-center">
                           <FaInfoCircle className="mr-1" />
@@ -798,9 +836,9 @@ const handleImageUpload = async (e) => {
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                       {formData.images.map((image, imgIndex) => (
                         <div key={imgIndex} className="relative">
-                          <img 
-                            src={image} 
-                            alt={`Preview ${imgIndex + 1}`} 
+                          <img
+                            src={image}
+                            alt={`Preview ${imgIndex + 1}`}
                             className="h-32 w-full object-cover rounded-md"
                           />
                           <button
@@ -871,7 +909,7 @@ const handleImageUpload = async (e) => {
                 </div>
 
                 <p className="text-gray-300 mb-4 line-clamp-2">{service.description}</p>
-                
+
                 <div className="flex items-center justify-between mb-4">
                   <div>
                     <span className="text-blue-400 font-bold">{service.price || 499}</span>
@@ -887,7 +925,7 @@ const handleImageUpload = async (e) => {
                   <div className="text-sm text-gray-400">
                     {service.locations ? (Array.isArray(service.locations) ? service.locations.join(', ') : service.locations) : translations.multipleLocations}
                   </div>
-                  <Link 
+                  <Link
                     href={`/services/${service.type}`}
                     target="_blank"
                     className="text-blue-400 hover:text-blue-300 text-sm flex items-center"

@@ -17,8 +17,9 @@ const serviceSchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    unique: true, // Make type unique
-    trim: true
+    unique: true,
+    trim: true,
+    enum: ['residence', 'hotels', 'transportation', 'events', 'إقامة', 'فنادق', 'نقل', 'فعاليات']
   },
   title: {
     type: String,
@@ -74,10 +75,8 @@ const serviceSchema = new mongoose.Schema({
   }
 });
 
-serviceSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
-  next();
-});
+// **REMOVE ALL MIDDLEWARE - NO pre-save hooks at all!**
+// Delete everything below this line until the export
 
 const Service = mongoose.models.Service || mongoose.model('Service', serviceSchema);
 export default Service;

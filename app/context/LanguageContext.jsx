@@ -462,7 +462,7 @@ export const LanguageProvider = ({ children }) => {
       message: 'الرسالة',
       sending: 'جاري الإرسال...',
       contactSuccess: 'شكرًا لك على رسالتك! سوف نعود إليك قريبًا.',
-      footerDescription: 'جرب روسيا كما لم يحدث من قبل مع خدماتنا السياحية المميزة. اكتشف جمال وثقافة روسيا مع مرشدين خبراء.',
+      footerDescription: 'من المعالم الشهيرة إلى التفاصيل الخفية، نأخذك لاكتشاف جمال وثقافة روسيا بخدمات سياحية مميزة',
       quickLinks: 'روابط سريعة',
       discoverRussia: 'اكتشف روسيا',
       contactInfo: 'معلومات الاتصال',
@@ -582,7 +582,7 @@ export const LanguageProvider = ({ children }) => {
       favorite: 'مفضلة',
       
       // Categories
-      premiumRestaurants: 'مطاعم مميزة',
+      premiumRestaurants: 'مطاعم',
       luxuryHotels: 'فنادق ',
       culturalMuseums: 'متاحف ثقافية',
       discoverExperiences: 'اكتشف',
