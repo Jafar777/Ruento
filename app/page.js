@@ -17,7 +17,6 @@ export default function Home() {
      <BlogSection id="blog" />
      <Contact id="contact" />
      <Footer />
-     <div>This is a test</div>
     </div>
   );
 }
