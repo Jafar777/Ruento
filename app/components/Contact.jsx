@@ -110,7 +110,7 @@ const Contact = () => {
                   </div>
                   <div>
                     <h4 className="font-semibold">{translations.phone || 'Phone'}</h4>
-                    <p className="">{contacts?.phone || '+1 (555) 123-4567'}</p>
+                    <p  dir="ltr" className="">{contacts?.phone || '+1 (555) 123-4567'}</p>
                   </div>
                 </div>
 
@@ -128,9 +128,9 @@ const Contact = () => {
                   <div className="bg-green-500 p-3 rounded-full mr-4">
                     <FaWhatsapp className="text-white" />
                   </div>
-                  <div>
+                  <div >
                     <h4 className="font-semibold">{translations.whatsapp || 'WhatsApp'}</h4>
-                    <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="hover:underline">
+                    <a href={whatsappLink} target="_blank" rel="noopener noreferrer" className="hover:underline"  dir="ltr">
                       {contacts?.whatsapp || '+1 (555) 123-4567'}
                     </a>
                   </div>
@@ -178,10 +178,10 @@ const Contact = () => {
               <a
                 href={whatsappLink}
                 target="_blank"
-                rel="noopener noreferrer"
+                rel="noopener noreferrer"  
                 className="w-full bg-green-600 text-white py-3 px-6 rounded-md font-semibold flex items-center justify-center hover:bg-green-700 transition duration-300"
               >
-                <FaWhatsapp className="mr-2" />
+                <FaWhatsapp className="mr-2 ml-2" />
                 {translations.messageOnWhatsApp || 'Message on WhatsApp'}
               </a>
             </div>

@@ -255,19 +255,19 @@ const Footer = () => {
             <ul className="space-y-4">
               <li className="flex items-start">
                 <FaMapMarkerAlt className="text-blue-400 mt-1 mr-3" />
-                <span className="text-gray-400">{contacts?.address || '123 Tourism Street, Moscow, Russia'}</span>
+                <span className="text-gray-400 ml-1 mr-1">{contacts?.address || '123 Tourism Street, Moscow, Russia'}</span>
               </li>
               <li className="flex items-start">
                 <FaPhone className="text-blue-400 mt-1 mr-3" />
-                <span className="text-gray-400">{contacts?.phone || '+1 (555) 123-4567'}</span>
+                <span className="text-gray-400 ml-1 mr-1" dir="ltr">{contacts?.phone || '+1 (555) 123-4567'}</span>
               </li>
               <li className="flex items-start">
-                <FaEnvelope className="text-blue-400 mt-1 mr-3" />
-                <span className="text-gray-400">{contacts?.email || 'info@ruentotourism.com'}</span>
+                <FaEnvelope className="text-blue-400 mt-1 mr-3 " />
+                <span className="text-gray-400 ml-1 mr-1">{contacts?.email || 'info@ruentotourism.com'}</span>
               </li>
               <li className="flex items-start">
                 <FaWhatsapp className="text-green-400 mt-1 mr-3" />
-                <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition">
+                <a href={socialLinks.whatsapp} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition ml-1 mr-1" dir="ltr">
                   {contacts?.whatsapp || '+1 (555) 123-4567'}
                 </a>
               </li>
