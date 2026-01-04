@@ -60,21 +60,44 @@ export async function PUT(request) {
       data.whatsapp = whatsappNumber;
     }
     
-    // Update or insert contacts
-    const result = await db.collection('contacts').updateOne(
-      {},
-      { $set: { ...data, updatedAt: new Date() } },
-      { upsert: true }
-    );
+    // Remove _id from data if present (to prevent updating immutable field)
+    delete data._id;
     
-    return NextResponse.json(
-      { 
-        success: true, 
-        message: 'تم تحديث بيانات الاتصال بنجاح',
-        updated: result.modifiedCount > 0 || result.upsertedCount > 0
-      },
-      { status: 200 }
-    );
+    // Check if contacts document exists
+    const existingContacts = await db.collection('contacts').findOne({});
+    
+    if (existingContacts) {
+      // Update existing document using its _id
+      const result = await db.collection('contacts').updateOne(
+        { _id: existingContacts._id },
+        { $set: { ...data, updatedAt: new Date() } }
+      );
+      
+      return NextResponse.json(
+        { 
+          success: true, 
+          message: 'تم تحديث بيانات الاتصال بنجاح',
+          updated: result.modifiedCount > 0
+        },
+        { status: 200 }
+      );
+    } else {
+      // Insert new document if none exists
+      const result = await db.collection('contacts').insertOne({
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      });
+      
+      return NextResponse.json(
+        { 
+          success: true, 
+          message: 'تم إنشاء بيانات الاتصال بنجاح',
+          insertedId: result.insertedId
+        },
+        { status: 201 }
+      );
+    }
   } catch (error) {
     console.error('Error updating contacts:', error);
     return NextResponse.json(
