@@ -17,6 +17,7 @@ import {
   FaImage
 } from 'react-icons/fa';
 import Link from 'next/link';
+import { FaLocationDot, FaCalendarCheck } from 'react-icons/fa6';
 
 const ServiceDetailPage = () => {
   const params = useParams();
@@ -171,6 +172,31 @@ const ServiceDetailPage = () => {
     return categories[type] || type;
   };
 
+  // Check if a field should be displayed (not empty/null/undefined)
+  const shouldDisplayField = (value) => {
+    if (value === null || value === undefined) return false;
+    if (typeof value === 'string' && value.trim() === '') return false;
+    if (Array.isArray(value) && value.length === 0) return false;
+    if (value === 0) return false; // Price of 0 shouldn't be shown
+    return true;
+  };
+
+  // Process locations to handle different formats
+  const getLocationsArray = () => {
+    if (!service?.locations) return [];
+    
+    if (Array.isArray(service.locations)) {
+      return service.locations.filter(location => location && location.trim() !== '');
+    }
+    
+    if (typeof service.locations === 'string') {
+      if (service.locations.trim() === '') return [];
+      return [service.locations];
+    }
+    
+    return [];
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -206,6 +232,10 @@ const ServiceDetailPage = () => {
       </div>
     );
   }
+
+  // Get processed locations
+  const locationsArray = getLocationsArray();
+  const hasLocations = locationsArray.length > 0;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -285,13 +315,6 @@ const ServiceDetailPage = () => {
                   </h1>
                   
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="flex items-center">
-                      <FaStar className="text-yellow-400 mr-1" />
-                      <span className="font-semibold">{service.rating || 4.5}</span>
-                      <span className="text-gray-500 ml-1">
-                        ({service.reviews || 128} {translations.reviews || 'reviews'})
-                      </span>
-                    </div>
                     
                     {service.features && (
                       <div className="flex items-center gap-2">
@@ -304,79 +327,107 @@ const ServiceDetailPage = () => {
                     )}
                   </div>
                 </div>
-
               </div>
 
               <p className="text-lg text-gray-600 leading-relaxed">
                 {service.description}
               </p>
 
-              {/* Quick Facts */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-blue-50 rounded-xl">
-                {service.duration && (
-                  <div className="text-center">
-                    <FaClock className="text-blue-500 text-xl mx-auto mb-2" />
-                    <div className="font-semibold text-gray-800">{service.duration}</div>
-                    <div className="text-sm text-gray-600">{translations.duration || 'المدة'}</div>
-                  </div>
-                )}
-                
-                {service.groupSize && (
-                  <div className="text-center">
-                    <FaUsers className="text-green-500 text-xl mx-auto mb-2" />
-                    <div className="font-semibold text-gray-800">{service.groupSize}</div>
-                    <div className="text-sm text-gray-600">{translations.groupSize || 'حجم المجموعة'}</div>
-                  </div>
-                )}
-                
-                <div className="text-center">
-                  <FaMapMarkerAlt className="text-red-500 text-xl mx-auto mb-2" />
-                  <div className="font-semibold text-gray-800">
-                    {Array.isArray(service.locations) ? service.locations.length : 1}
-                  </div>
-                  <div className="text-sm text-gray-600">{translations.locations || 'المواقع'}</div>
+              {/* Quick Facts - Conditionally shown */}
+              {(shouldDisplayField(service.duration) || 
+                shouldDisplayField(service.groupSize) || 
+                shouldDisplayField(service.availability) || 
+                hasLocations) && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-6 bg-blue-50 rounded-xl">
+                  {/* Duration - Only show if exists and not empty */}
+                  {shouldDisplayField(service.duration) && (
+                    <div className="text-center">
+                      <FaClock className="text-blue-500 text-xl mx-auto mb-2" />
+                      <div className="font-semibold text-gray-800">{service.duration}</div>
+                      <div className="text-sm text-gray-600">{translations.duration || 'المدة'}</div>
+                    </div>
+                  )}
+                  
+                  {/* Group Size - Only show if exists and not empty */}
+                  {shouldDisplayField(service.groupSize) && (
+                    <div className="text-center">
+                      <FaUsers className="text-green-500 text-xl mx-auto mb-2" />
+                      <div className="font-semibold text-gray-800">{service.groupSize}</div>
+                      <div className="text-sm text-gray-600">{translations.groupSize || 'حجم المجموعة'}</div>
+                    </div>
+                  )}
+                  
+                  {/* Locations - Only show if array has items */}
+                  {hasLocations && (
+                    <div className="text-center">
+                      <FaLocationDot className="text-red-500 text-xl mx-auto mb-2" />
+                      <div className="font-semibold text-gray-800">
+                        {locationsArray.length}
+                      </div>
+                      <div className="text-sm text-gray-600">{translations.locations || 'المواقع'}</div>
+                    </div>
+                  )}
+                  
+                  {/* Availability - Only show if exists and not empty */}
+                  {shouldDisplayField(service.availability) && (
+                    <div className="text-center">
+                      <FaCalendarCheck className="text-purple-500 text-xl mx-auto mb-2" />
+                      <div className="font-semibold text-gray-800">
+                        {service.availability}
+                      </div>
+                      <div className="text-sm text-gray-600">{translations.availability || 'التوفر'}</div>
+                    </div>
+                  )}
                 </div>
-                
-                <div className="text-center">
-                  <FaCalendar className="text-purple-500 text-xl mx-auto mb-2" />
-                  <div className="font-semibold text-gray-800">
-                    {service.availability || translations.availabilityDefault || 'على مدار السنة'}
-                  </div>
-                  <div className="text-sm text-gray-600">{translations.availability || 'التوفر'}</div>
-                </div>
-              </div>
+              )}
 
-              {/* Price and Booking */}
-              <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-lg">
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <div className="text-3xl font-bold text-blue-600">
-                      ${service.price || 499}
-                      <span className="text-lg text-gray-500 ml-2">
-                        / {service.priceUnit || translations.perPerson || 'للشخص'}
-                      </span>
+              {/* Price and Booking - Conditionally shown */}
+              {(shouldDisplayField(service.price) || shouldDisplayField(service.priceUnit)) && (
+                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-lg">
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      {/* Only show price if it exists and is greater than 0 */}
+                      {shouldDisplayField(service.price) && service.price > 0 ? (
+                        <>
+                          <div className="text-3xl font-bold text-blue-600">
+                            ${service.price}
+                            <span className="text-lg text-gray-500 ml-2">
+                              / {service.priceUnit || translations.perPerson || 'للشخص'}
+                            </span>
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {translations.startingFrom || 'بداية من'} • {translations.includesTaxes || 'يشمل الضرائب'}
+                          </div>
+                        </>
+                      ) : shouldDisplayField(service.priceUnit) ? (
+                        <div className="text-2xl font-bold text-blue-600">
+                          {translations.contactForPrice || 'اتصل للاستفسار عن السعر'}
+                          {service.priceUnit && (
+                            <span className="text-lg text-gray-500 ml-2">
+                              / {service.priceUnit}
+                            </span>
+                          )}
+                        </div>
+                      ) : null}
                     </div>
-                    <div className="text-sm text-gray-500">
-                      {translations.startingFrom || 'بداية من'} • {translations.includesTaxes || 'يشمل الضرائب'}
-                    </div>
+                    
+                    <button
+                      onClick={() => {
+                        const whatsappLink = getWhatsAppLink(`I want to book service: ${service.title}`);
+                        window.open(whatsappLink, '_blank');
+                      }}
+                      className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-lg hover:from-blue-700 hover:to-purple-700 transition"
+                    >
+                      {translations.bookNow || 'احجز الآن'}
+                    </button>
                   </div>
                   
-                  <button
-                    onClick={() => {
-                      const whatsappLink = getWhatsAppLink(`I want to book service: ${service.title}`);
-                      window.open(whatsappLink, '_blank');
-                    }}
-                    className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold rounded-lg hover:from-blue-700 hover:to-purple-700 transition"
-                  >
-                    {translations.bookNow || 'احجز الآن'}
-                  </button>
+                  <div className="text-sm text-gray-600">
+                    <FaCheck className="inline text-green-500 mr-2" />
+                    {translations.flexibleCancellation || 'إلغاء مجاني حتى 30 يوم قبل البدء'}
+                  </div>
                 </div>
-                
-                <div className="text-sm text-gray-600">
-                  <FaCheck className="inline text-green-500 mr-2" />
-                  {translations.flexibleCancellation || 'إلغاء مجاني حتى 30 يوم قبل البدء'}
-                </div>
-              </div>
+              )}
             </div>
           </div>
         </div>
@@ -388,7 +439,7 @@ const ServiceDetailPage = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* Left Column - Features & Itinerary */}
             <div className="lg:col-span-2 space-y-12">
-              {/* Included Features */}
+              {/* Included Features - Only show if exists */}
               {service.features && service.features.length > 0 && (
                 <div className="bg-white rounded-xl p-6 shadow-md">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">
@@ -405,9 +456,7 @@ const ServiceDetailPage = () => {
                 </div>
               )}
 
-
-
-              {/* Benefits */}
+              {/* Benefits - Only show if exists */}
               {service.benefits && service.benefits.length > 0 && (
                 <div className="bg-white rounded-xl p-6 shadow-md">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">
@@ -439,74 +488,59 @@ const ServiceDetailPage = () => {
 
             {/* Right Column - Contact & Amenities */}
             <div className="space-y-6">
-              {/* Contact Information */}
-              <div className="bg-white rounded-xl p-6 shadow-md">
-                <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                  {translations.contactInformation || 'معلومات الاتصال'}
-                </h2>
-                <div className="space-y-4">
-                  {service.contactInfo?.phone && (
-                    <div className="flex items-center gap-3">
-                      <FaPhone className="text-blue-500" />
-                      <div>
-                        <div className="font-semibold">{service.contactInfo.phone}</div>
-                        <div className="text-sm text-gray-500">{translations.phoneNumber || 'هاتف'}</div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {service.contactInfo?.email && (
-                    <div className="flex items-center gap-3">
-                      <FaEnvelope className="text-green-500" />
-                      <div>
-                        <div className="font-semibold">{service.contactInfo.email}</div>
-                        <div className="text-sm text-gray-500">{translations.emailAddress || 'بريد إلكتروني'}</div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {service.contactInfo?.website && (
-                    <div className="flex items-center gap-3">
-                      <FaGlobe className="text-purple-500" />
-                      <div>
-                        <a 
-                          href={service.contactInfo.website}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-semibold text-blue-600 hover:underline"
-                        >
-                          {translations.visitWebsite || 'زيارة الموقع'}
-                        </a>
-                        <div className="text-sm text-gray-500">{translations.website || 'موقع إلكتروني'}</div>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {service.contactInfo?.liveChat && (
-                    <div className="flex items-center gap-3">
-                      <FaWhatsapp className="text-green-500" />
-                      <div>
-                        <div className="font-semibold">{service.contactInfo.liveChat}</div>
-                        <div className="text-sm text-gray-500">{translations.liveChat || 'دردشة مباشرة'}</div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Amenities */}
-              {service.amenities && service.amenities.length > 0 && (
+              {/* Contact Information - Only show if exists */}
+              {service.contactInfo && (
                 <div className="bg-white rounded-xl p-6 shadow-md">
                   <h2 className="text-2xl font-bold text-gray-800 mb-6">
-                    {translations.amenities || 'المرافق'}
+                    {translations.contactInformation || 'معلومات الاتصال'}
                   </h2>
-                  <div className="grid grid-cols-2 gap-3">
-                    {service.amenities.map((amenity, index) => (
-                      <div key={index} className="flex items-center gap-2 text-gray-700">
-                        {getAmenityIcon(amenity)}
-                        <span className="text-sm">{amenity}</span>
+                  <div className="space-y-4">
+                    {service.contactInfo?.هاتف && (
+                      <div className="flex items-center gap-3">
+                        <FaPhone className="text-blue-500" />
+                        <div>
+                          <div className="font-semibold">{service.contactInfo.هاتف}</div>
+                          <div className="text-sm text-gray-500">{translations.phoneNumber || 'هاتف'}</div>
+                        </div>
                       </div>
-                    ))}
+                    )}
+                    
+                    {service.contactInfo?.إيميل && (
+                      <div className="flex items-center gap-3">
+                        <FaEnvelope className="text-green-500" />
+                        <div>
+                          <div className="font-semibold">{service.contactInfo.إيميل}</div>
+                          <div className="text-sm text-gray-500">{translations.emailAddress || 'بريد إلكتروني'}</div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {service.contactInfo?.موقع && (
+                      <div className="flex items-center gap-3">
+                        <FaGlobe className="text-purple-500" />
+                        <div>
+                          <a 
+                            href={service.contactInfo.موقع}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-semibold text-blue-600 hover:underline"
+                          >
+                            {translations.visitWebsite || 'زيارة الموقع'}
+                          </a>
+                          <div className="text-sm text-gray-500">{translations.website || 'موقع إلكتروني'}</div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {service.contactInfo?.دردشة && (
+                      <div className="flex items-center gap-3">
+                        <FaWhatsapp className="text-green-500" />
+                        <div>
+                          <div className="font-semibold">{service.contactInfo.دردشة}</div>
+                          <div className="text-sm text-gray-500">{translations.liveChat || 'دردشة مباشرة'}</div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -645,25 +679,27 @@ const ServiceDetailPage = () => {
                     />
                   </div>
 
-                  {/* Price Summary */}
-                  <div className="bg-gray-50 p-4 rounded-lg">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-600">
-                        {service.title}
-                      </span>
-                      <span className="font-semibold">
-                        ${service.price} × {bookingData.travelers}
-                      </span>
-                    </div>
-                    <div className="border-t pt-2">
-                      <div className="flex justify-between items-center font-bold text-lg">
-                        <span>{translations.totalPrice || 'السعر الإجمالي'}</span>
-                        <span className="text-blue-600">
-                          ${service.price * bookingData.travelers}
+                  {/* Price Summary - Only show if price exists */}
+                  {shouldDisplayField(service.price) && service.price > 0 && (
+                    <div className="bg-gray-50 p-4 rounded-lg">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-gray-600">
+                          {service.title}
+                        </span>
+                        <span className="font-semibold">
+                          ${service.price} × {bookingData.travelers}
                         </span>
                       </div>
+                      <div className="border-t pt-2">
+                        <div className="flex justify-between items-center font-bold text-lg">
+                          <span>{translations.totalPrice || 'السعر الإجمالي'}</span>
+                          <span className="text-blue-600">
+                            ${service.price * bookingData.travelers}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
 
                   <div className="flex gap-4 pt-4">
                     <button

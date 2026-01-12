@@ -56,6 +56,63 @@ const validTypes = [
   'فعاليات'
 ];
 
+// Helper function to clean and process service data
+const processServiceData = (data) => {
+  const processed = { ...data };
+  
+  // Process locations - convert string to array if needed
+  if (typeof processed.locations === 'string') {
+    const locationsStr = processed.locations.trim();
+    if (locationsStr === '') {
+      processed.locations = [];
+    } else {
+      processed.locations = locationsStr.split(',').map(l => l.trim()).filter(l => l);
+    }
+  }
+  
+  // Process features and benefits to ensure they're arrays
+  if (processed.features && !Array.isArray(processed.features)) {
+    if (typeof processed.features === 'string') {
+      processed.features = processed.features.trim() === '' ? [] : [processed.features];
+    } else {
+      processed.features = [];
+    }
+  }
+  
+  if (processed.benefits && !Array.isArray(processed.benefits)) {
+    if (typeof processed.benefits === 'string') {
+      processed.benefits = processed.benefits.trim() === '' ? [] : [processed.benefits];
+    } else {
+      processed.benefits = [];
+    }
+  }
+  
+  // Convert price to number, handle empty string
+  if (processed.price !== undefined && processed.price !== null) {
+    if (processed.price === '' || processed.price === 0) {
+      processed.price = null;
+    } else {
+      processed.price = Number(processed.price);
+      if (isNaN(processed.price)) {
+        processed.price = null;
+      }
+    }
+  }
+  
+  // Trim string fields
+  const stringFields = ['duration', 'groupSize', 'availability', 'priceUnit', 'title', 'description'];
+  stringFields.forEach(field => {
+    if (processed[field] && typeof processed[field] === 'string') {
+      processed[field] = processed[field].trim();
+    }
+  });
+  
+  // Set updatedAt timestamp
+  processed.updatedAt = new Date();
+  
+  return processed;
+};
+
 // GET all services
 export async function GET() {
   try {
@@ -154,21 +211,23 @@ export async function POST(request) {
       return iconMap[type] || '📋';
     };
 
-    // Prepare service data
+    // Process and prepare service data
+    const processedData = processServiceData(data);
+    
     const serviceData = {
       type: serviceType,
-      title: data.title || 'عنوان الخدمة',
-      description: data.description || 'وصف الخدمة باللغة العربية',
-      icon: data.icon || getIconByType(serviceType),
-      images: data.images || [],
-      duration: data.duration || '3-7 أيام',
-      groupSize: data.groupSize || '2-12 شخص',
-      availability: data.availability || 'على مدار السنة',
-      locations: Array.isArray(data.locations) ? data.locations : (data.locations || ['متعدد']),
-      price: Number(data.price) || 499, // Convert to number
-      priceUnit: data.priceUnit || 'للشخص',
-      rating: Number(data.rating) || 4.5, // Convert to number
-      features: data.features || [
+      title: processedData.title || 'عنوان الخدمة',
+      description: processedData.description || 'وصف الخدمة باللغة العربية',
+      icon: processedData.icon || getIconByType(serviceType),
+      images: processedData.images || [],
+      duration: processedData.duration || '3-7 أيام',
+      groupSize: processedData.groupSize || '2-12 شخص',
+      availability: processedData.availability || 'على مدار السنة',
+      locations: processedData.locations || [],
+      price: processedData.price !== undefined ? processedData.price : 499,
+      priceUnit: processedData.priceUnit || 'للشخص',
+      rating: processedData.rating || 4.5,
+      features: processedData.features || [
         'مرشدين محليين خبراء',
         'إقامة مريحة',
         'جميع وسائل النقل مشمولة',
@@ -176,22 +235,24 @@ export async function POST(request) {
         'وجبات تقليدية',
         'دعم على مدار الساعة'
       ],
-      itinerary: data.itinerary || [
+      itinerary: processedData.itinerary || [
         { يوم: 'اليوم الأول', عنوان: 'الوصول والترحيب', وصف: 'استقبال من المطار وعشاء ترحيبي تقليدي' },
         { يوم: 'اليوم الثاني', عنوان: 'استكشاف المدينة', وصف: 'جولة إرشادية في المواقع التاريخية والأسواق المحلية' },
         { يوم: 'اليوم الثالث', عنوان: 'الانغماس الثقافي', وصف: 'ورش عمل تقليدية وعروض ثقافية' }
       ],
-      contactInfo: data.contactInfo || {
+      contactInfo: processedData.contactInfo || {
         هاتف: '+7 (999) 999-9999',
         إيميل: 'info@ruento.com',
         دردشة: 'متاحة 24/7'
       },
-      benefits: data.benefits || [
+      benefits: processedData.benefits || [
         'ضمان أفضل سعر',
         'إلغاء مرن',
         'مرشدين محليين خبراء',
         'سياحة مستدامة'
-      ]
+      ],
+      createdAt: new Date(),
+      updatedAt: new Date()
     };
 
     console.log('Creating new service with data:', serviceData);
@@ -253,21 +314,44 @@ export async function PUT(request) {
     }
 
     const data = await request.json();
+    console.log('PUT update data:', data);
+    
+    // Process the data to handle empty values
+    const processedData = processServiceData(data);
 
-    // Validate type if it's being updated
-    if (data.type && !validTypes.includes(data.type)) {
+    // Don't allow type change in update
+    if (processedData.type && processedData.type !== type) {
       return NextResponse.json(
         {
-          error: 'نوع غير صالح',
-          message: `النوع "${data.type}" غير مسموح. الأنواع المسموح بها فقط: إقامة، فنادق، نقل، فعاليات`
+          error: 'لا يمكن تغيير نوع الخدمة',
+          message: 'لا يمكن تغيير نوع الخدمة بعد الإنشاء. يمكنك حذف الخدمة وإنشاء خدمة جديدة.'
         },
         { status: 400 }
       );
     }
 
+    // Build update object, removing undefined values
+    const updateObj = {};
+    const updateFields = [
+      'title', 'description', 'icon', 'images', 'duration', 'groupSize',
+      'availability', 'locations', 'price', 'priceUnit', 'rating',
+      'features', 'itinerary', 'contactInfo', 'benefits'
+    ];
+
+    updateFields.forEach(field => {
+      if (processedData[field] !== undefined) {
+        updateObj[field] = processedData[field];
+      }
+    });
+
+    // Always update the updatedAt timestamp
+    updateObj.updatedAt = new Date();
+
+    console.log('Updating service with:', updateObj);
+
     const updatedService = await Service.findOneAndUpdate(
       { type: type },
-      { $set: data },
+      { $set: updateObj },
       { new: true, runValidators: true }
     );
 

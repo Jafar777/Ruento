@@ -3,6 +3,43 @@ import { NextResponse } from 'next/server';
 import { connectToDatabase } from '../../../../lib/mongodb';
 import { ObjectId } from 'mongodb';
 
+// Helper function to clean and process service data
+const processServiceData = (data) => {
+  const processed = { ...data };
+  
+  // Process locations - convert string to array if needed
+  if (typeof processed.locations === 'string') {
+    const locationsStr = processed.locations.trim();
+    if (locationsStr === '') {
+      processed.locations = [];
+    } else {
+      processed.locations = locationsStr.split(',').map(l => l.trim()).filter(l => l);
+    }
+  }
+  
+  // Convert price to number, handle empty string
+  if (processed.price !== undefined && processed.price !== null) {
+    if (processed.price === '' || processed.price === 0) {
+      processed.price = null;
+    } else {
+      processed.price = Number(processed.price);
+      if (isNaN(processed.price)) {
+        processed.price = null;
+      }
+    }
+  }
+  
+  // Trim string fields
+  const stringFields = ['duration', 'groupSize', 'availability', 'priceUnit', 'title', 'description'];
+  stringFields.forEach(field => {
+    if (processed[field] && typeof processed[field] === 'string') {
+      processed[field] = processed[field].trim();
+    }
+  });
+  
+  return processed;
+};
+
 // NOTE: In Next.js 14, params is a Promise that needs to be awaited
 export async function GET(request, { params }) {
   try {
@@ -39,6 +76,12 @@ export async function GET(request, { params }) {
     // Convert ObjectId to string
     service._id = service._id.toString();
     
+    // Ensure arrays are present
+    if (!service.images) service.images = [];
+    if (!service.features) service.features = [];
+    if (!service.benefits) service.benefits = [];
+    if (!service.locations) service.locations = [];
+    
     return NextResponse.json(service);
   } catch (error) {
     console.error('Error fetching service:', error);
@@ -54,6 +97,10 @@ export async function PUT(request, { params }) {
     // Await the params promise
     const { type } = await params;
     const body = await request.json();
+    
+    // Process the data
+    const processedData = processServiceData(body);
+    
     const { 
       type: newType, 
       title, 
@@ -66,15 +113,16 @@ export async function PUT(request, { params }) {
       locations,
       price,
       priceUnit,
-      includedFeatures,
+      rating,
+      features,
       itinerary,
       contactInfo,
       benefits
-    } = body;
+    } = processedData;
     
-    if (!newType || !title || !description || !icon) {
+    if (!title || !description || !icon) {
       return NextResponse.json(
-        { message: 'Type, title, description, and icon are required' },
+        { message: 'Title, description, and icon are required' },
         { status: 400 }
       );
     }
@@ -99,60 +147,48 @@ export async function PUT(request, { params }) {
     }
     
     // Check if service type already exists for other services
-    const existingService = await db.collection('services').findOne({ 
-      type: newType.toLowerCase().trim(), 
-      _id: { $ne: service._id } 
-    });
-    
-    if (existingService) {
-      return NextResponse.json(
-        { message: 'Service type already exists' },
-        { status: 400 }
-      );
+    if (newType && newType !== type) {
+      const existingService = await db.collection('services').findOne({ 
+        type: newType.toLowerCase().trim(), 
+        _id: { $ne: service._id } 
+      });
+      
+      if (existingService) {
+        return NextResponse.json(
+          { message: 'Service type already exists' },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Build update object
+    const updateObj = {
+      title: title.trim(),
+      description: description.trim(),
+      icon,
+      images: images || [],
+      duration: duration || '',
+      groupSize: groupSize || '',
+      availability: availability || '',
+      locations: locations || [],
+      price: price !== undefined ? price : null,
+      priceUnit: priceUnit || '',
+      rating: rating || 4.5,
+      features: features || [],
+      itinerary: itinerary || [],
+      contactInfo: contactInfo || {},
+      benefits: benefits || [],
+      updatedAt: new Date()
+    };
+
+    // If newType is provided and different, update it
+    if (newType && newType !== type) {
+      updateObj.type = newType.toLowerCase().trim();
     }
 
     const result = await db.collection('services').updateOne(
       { _id: service._id },
-      { 
-        $set: { 
-          type: newType.toLowerCase().trim(),
-          title: title.trim(),
-          description: description.trim(),
-          icon,
-          images: images || [],
-          duration: duration || '3-7 Days',
-          groupSize: groupSize || '2-12 People',
-          availability: availability || 'Year-round',
-          locations: locations || 'Multiple',
-          price: price || 499,
-          priceUnit: priceUnit || 'person',
-          includedFeatures: includedFeatures || [
-            'Expert local guides',
-            'Comfortable accommodations',
-            'All transportation included',
-            'Entry fees to attractions',
-            'Traditional meals',
-            '24/7 support'
-          ],
-          itinerary: itinerary || [
-            { day: 'Day 1', title: 'Arrival & Welcome', description: 'Airport pickup and traditional welcome dinner' },
-            { day: 'Day 2', title: 'City Exploration', description: 'Guided tour of historical sites and local markets' },
-            { day: 'Day 3', title: 'Cultural Immersion', description: 'Traditional workshops and cultural performances' }
-          ],
-          contactInfo: contactInfo || {
-            phone: '+1 (234) 567-890',
-            email: 'info@ruento.com',
-            liveChat: 'Available 24/7'
-          },
-          benefits: benefits || [
-            'Best price guarantee',
-            'Flexible cancellation',
-            'Local expert guides',
-            'Sustainable tourism'
-          ],
-          updatedAt: new Date()
-        } 
-      }
+      { $set: updateObj }
     );
 
     if (result.matchedCount === 0) {
