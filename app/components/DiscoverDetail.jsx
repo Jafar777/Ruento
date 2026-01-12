@@ -6,7 +6,6 @@ import { useParams, useRouter } from 'next/navigation';
 import { useLanguage } from '../context/LanguageContext';
 import Image from 'next/image';
 import {
-  FaStar,
   FaMapMarkerAlt,
   FaPhone,
   FaGlobe,
@@ -31,7 +30,8 @@ import {
   FaWind,
   FaChevronLeft,
   FaChevronRight,
-  FaDollarSign
+  FaDollarSign,
+  FaWhatsapp
 } from 'react-icons/fa';
 
 const DiscoverDetail = () => {
@@ -67,20 +67,20 @@ const DiscoverDetail = () => {
     fetchContacts();
   }, []);
 
-  const getWhatsAppLink = (customMessage = '') => {
-    if (!contacts?.whatsapp) return '#';
+  const getWhatsAppLink = (phoneNumber, customMessage = '') => {
+    if (!phoneNumber) return '#';
     
-    let phoneNumber = contacts.whatsapp;
-    if (phoneNumber.includes('wa.me/') || phoneNumber.includes('whatsapp.com/')) {
-      const match = phoneNumber.match(/\/?\+?(\d+)/);
-      if (match) phoneNumber = match[1];
+    let phone = phoneNumber;
+    if (phone.includes('wa.me/') || phone.includes('whatsapp.com/')) {
+      const match = phone.match(/\/?\+?(\d+)/);
+      if (match) phone = match[1];
     }
     
-    phoneNumber = phoneNumber.replace(/[^\d+]/g, '');
-    const message = customMessage || contacts.whatsappMessage || 'Hello! I am interested in your services.';
+    phone = phone.replace(/[^\d+]/g, '');
+    const message = customMessage || `${translations.defaultWhatsappMessage?.replace('{title}', item?.title) || `Hello! I am interested in booking ${item?.title}`}`;
     const encodedMessage = encodeURIComponent(message);
     
-    return `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
+    return `https://wa.me/${phone}?text=${encodedMessage}`;
   };
 
   const amenityIcons = {
@@ -98,17 +98,17 @@ const DiscoverDetail = () => {
   };
 
   const amenityLabels = {
-    'free-wifi': translations.freeWifi || 'Free WiFi',
-    'swimming-pool': translations.swimmingPool || 'Swimming Pool',
-    'spa': translations.spaWellness || 'Spa & Wellness',
-    'fitness-center': translations.fitnessCenter || 'Fitness Center',
-    'restaurant': translations.restaurantAmenity || 'Restaurant',
-    'parking': translations.parkingAmenity || 'Parking',
-    'pet-friendly': translations.petFriendly || 'Pet Friendly',
-    'air-conditioning': translations.airConditioning || 'Air Conditioning',
-    'tv': translations.smartTV || 'Smart TV',
-    'breakfast': translations.breakfastIncluded || 'Breakfast Included',
-    'concierge': translations.concierge24 || '24/7 Concierge'
+    'free-wifi': translations.freeWifi || 'واي فاي مجاني',
+    'swimming-pool': translations.swimmingPool || 'حمام سباحة',
+    'spa': translations.spaWellness || 'سبا وعناية بالصحة',
+    'fitness-center': translations.fitnessCenter || 'مركز لياقة بدنية',
+    'restaurant': translations.restaurantAmenity || 'مطعم',
+    'parking': translations.parkingAmenity || 'موقف سيارات',
+    'pet-friendly': translations.petFriendly || 'مسموح بالحيوانات الأليفة',
+    'air-conditioning': translations.airConditioning || 'تكييف هواء',
+    'tv': translations.smartTV || 'تلفزيون ذكي',
+    'breakfast': translations.breakfastIncluded || 'الإفطار مشمول',
+    'concierge': translations.concierge24 || 'كونسيرج 24/7'
   };
 
   useEffect(() => {
@@ -120,8 +120,8 @@ const DiscoverDetail = () => {
           ...data,
           images: data.images || [{ url: '/default-image.jpg' }],
           amenities: data.amenities || [],
-          rating: data.rating || 4.5,
-          priceStartsFrom: data.priceStartsFrom || ''
+          priceStartsFrom: data.priceStartsFrom || '',
+          whatsapp: data.whatsapp || ''
         };
         setItem(formattedData);
       } catch (error) {
@@ -159,18 +159,8 @@ const DiscoverDetail = () => {
     setAutoSlide(false);
   };
 
-  const renderStars = (rating) => {
-    return Array.from({ length: 5 }).map((_, i) => (
-      <FaStar
-        key={i}
-        className={`${i < rating ? 'text-yellow-400 fill-current' : 'text-gray-300'}`}
-        size={20}
-      />
-    ));
-  };
-
   const handleBooking = () => {
-    const whatsappLink = getWhatsAppLink(`I want to book: ${item.title}`);
+    const whatsappLink = getWhatsAppLink(item.whatsapp || contacts?.whatsapp, `${translations.bookingInquiry?.replace('{title}', item.title) || `I want to book: ${item.title}`}`);
     window.open(whatsappLink, '_blank');
     setBookingModal(false);
   };
@@ -181,7 +171,7 @@ const DiscoverDetail = () => {
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-16 w-16 border-4 border-blue-500 border-t-transparent"></div>
           <p className="mt-6 text-gray-600 text-lg">
-            {translations.loadingDetails || 'Loading experience details...'}
+            {translations.loadingDetails || 'جاري تحميل تفاصيل التجربة...'}
           </p>
         </div>
       </div>
@@ -196,16 +186,16 @@ const DiscoverDetail = () => {
             <FaMapMarkerAlt className="text-red-500" size={48} />
           </div>
           <h2 className="text-3xl font-bold text-gray-800 mb-4">
-            {translations.experienceNotFound || 'Experience Not Found'}
+            {translations.experienceNotFound || 'التجربة غير موجودة'}
           </h2>
           <p className="text-gray-600 mb-8">
-            {translations.notFoundMessage || 'The experience you\'re looking for doesn\'t exist or has been removed.'}
+            {translations.notFoundMessage || 'التجربة التي تبحث عنها غير موجودة أو تمت إزالتها.'}
           </p>
           <button
             onClick={() => router.back()}
             className="px-8 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 hover:scale-105"
           >
-            {translations.goBack || 'Go Back'}
+            {translations.goBack || 'العودة'}
           </button>
         </div>
       </div>
@@ -213,10 +203,10 @@ const DiscoverDetail = () => {
   }
 
   const isHotel = params.category === 'hotels';
-  const categoryName = params.category === 'hotels' ? translations.luxuryHotels || 'Luxury Hotels' :
-                     params.category === 'restaurants' ? translations.premiumRestaurants || 'Premium Restaurants' :
-                     params.category === 'museums' ? translations.culturalMuseums || 'Cultural Museums' :
-                     translations.touristAttractions || 'Tourist Attractions';
+  const categoryName = params.category === 'hotels' ? translations.luxuryHotels || 'الفنادق' :
+                     params.category === 'restaurants' ? translations.premiumRestaurants || 'المطاعم' :
+                     params.category === 'museums' ? translations.culturalMuseums || 'المتاحف الثقافية' :
+                     translations.touristAttractions || 'المعالم السياحية';
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -298,19 +288,19 @@ const DiscoverDetail = () => {
                 className="flex items-center gap-2 text-white hover:text-gray-200 transition-colors bg-black/20 backdrop-blur-sm px-4 py-2.5 rounded-xl"
               >
                 <FaArrowLeft />
-                <span>{translations.backToDiscover || 'Back to Discover'}</span>
+                <span>{translations.backToDiscover || 'العودة إلى الاكتشاف'}</span>
               </button>
               
               <div className="flex gap-2">
                 <button 
                   className="p-3 bg-white/20 backdrop-blur-sm rounded-xl hover:bg-white/30 transition-colors"
-                  aria-label={translations.share || 'Share'}
+                  aria-label={translations.share || 'مشاركة'}
                 >
                   <FaShareAlt className="text-white" />
                 </button>
                 <button 
                   className="p-3 bg-white/20 backdrop-blur-sm rounded-xl hover:bg-white/30 transition-colors"
-                  aria-label={translations.bookmark || 'Bookmark'}
+                  aria-label={translations.bookmark || 'حفظ'}
                 >
                   <FaBookmark className="text-white" />
                 </button>
@@ -343,16 +333,6 @@ const DiscoverDetail = () => {
                     <span>{item.address}</span>
                   </div>
                 )}
-                
-                {item.rating && (
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      {renderStars(parseInt(item.rating))}
-                    </div>
-                    <span className="font-bold">{item.rating}/5</span>
-                  </div>
-                )}
-                
               </div>
             </div>
           </div>
@@ -367,7 +347,7 @@ const DiscoverDetail = () => {
             {/* About Section */}
             <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
               <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
-                {translations.aboutExperience || 'About This Experience'}
+                {translations.aboutExperience || 'حول هذه التجربة'}
               </h2>
               <div className="prose prose-lg max-w-none text-gray-600 leading-relaxed">
                 <p className="text-lg mb-6">{item.description}</p>
@@ -378,7 +358,7 @@ const DiscoverDetail = () => {
             {item.amenities && item.amenities.length > 0 && (
               <div className="bg-white rounded-2xl shadow-lg p-6 md:p-8">
                 <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-8">
-                  {translations.amenitiesServices || 'Amenities & Services'}
+                  {translations.amenitiesServices || 'المرافق والخدمات'}
                 </h2>
                 
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
@@ -412,21 +392,21 @@ const DiscoverDetail = () => {
                         <>
                           <div className="text-sm text-gray-600 mb-1 flex items-center">
                             <FaDollarSign className="mr-1" />
-                            {translations.priceStartsFrom || 'Price starts from'}
+                            {translations.priceStartsFrom || 'السعر يبدأ من'}
                           </div>
                           <div className="text-2xl font-bold text-gray-900">
                             ${item.priceStartsFrom}
                             <span className="text-lg font-normal text-gray-600 ml-1">
-                              {translations.perNight || '/night'}
+                              {translations.perNight || '/ليلة'}
                             </span>
                           </div>
                           <div className="text-sm text-gray-500 mt-1">
-                            {translations.taxesFeesIncluded || 'Includes taxes & fees'}
+                            {translations.taxesFeesIncluded || 'يشمل الضرائب والرسوم'}
                           </div>
                         </>
                       ) : (
                         <div className="text-2xl font-bold text-gray-900">
-                          {translations.contactForPrice || 'Contact for price'}
+                          {translations.contactForPrice || 'تواصل للسعر'}
                         </div>
                       )}
                     </div>
@@ -438,18 +418,18 @@ const DiscoverDetail = () => {
                         onClick={() => setBookingModal(true)}
                         className="w-full py-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-xl font-bold text-lg hover:shadow-lg transition-all duration-300 hover:scale-[1.02] mb-4"
                       >
-                        {translations.bookNow || 'Book Now'}
+                        {translations.bookNow || 'احجز الآن'}
                       </button>
                     </>
                   ) : (
                     <button 
                       onClick={() => {
-                        const whatsappLink = getWhatsAppLink(`I want to book experience: ${item.title}`);
+                        const whatsappLink = getWhatsAppLink(item.whatsapp || contacts?.whatsapp, `${translations.bookingInquiry?.replace('{title}', item.title) || `I want to book experience: ${item.title}`}`);
                         window.open(whatsappLink, '_blank');
                       }}
                       className="w-full py-4 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-xl font-bold text-lg hover:shadow-lg transition-all duration-300 hover:scale-[1.02]"
                     >
-                      {translations.bookExperience || 'Book Experience'}
+                      {translations.bookExperience || 'احجز التجربة'}
                     </button>
                   )}
                 </div>
@@ -457,7 +437,7 @@ const DiscoverDetail = () => {
                 {/* Contact Information */}
                 <div className="p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                    {translations.contactInformation || 'Contact Information'}
+                    {translations.contactInformation || 'معلومات الاتصال'}
                   </h3>
                   
                   <div className="space-y-4">
@@ -466,52 +446,54 @@ const DiscoverDetail = () => {
                         <FaPhone className="text-blue-600 flex-shrink-0" />
                         <div>
                           <div className="text-sm text-gray-600">
-                            {translations.phoneNumber || 'Phone'}
+                            {translations.phoneNumber || 'الهاتف'}
                           </div>
                           <div className="font-medium text-gray-900">{item.phone}</div>
                         </div>
                       </div>
                     )}
                     
-                    {item.address && (
+                    {/* WhatsApp Button - Replaces Website */}
+                    {(item.whatsapp || contacts?.whatsapp) && (
                       <div className="flex items-center gap-3 p-3 bg-green-50 rounded-xl">
-                        <FaMapMarkerAlt className="text-green-600 flex-shrink-0" />
+                        <FaWhatsapp className="text-green-600 flex-shrink-0" />
                         <div>
                           <div className="text-sm text-gray-600">
-                            {translations.addressLocation || 'Address'}
+                            {translations.whatsapp || 'واتساب'}
+                          </div>
+                          <a
+                            href={getWhatsAppLink(item.whatsapp || contacts?.whatsapp, `${translations.bookingInquiry?.replace('{title}', item.title) || `Hello! I'm interested in ${item.title}`}`)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="font-medium text-green-600 hover:underline break-all flex items-center"
+                          >
+                            {translations.chatOnWhatsApp || 'تواصل عبر واتساب'}
+                            <FaWhatsapp className="ml-2 text-sm" />
+                          </a>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {item.address && (
+                      <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-xl">
+                        <FaMapMarkerAlt className="text-amber-600 flex-shrink-0" />
+                        <div>
+                          <div className="text-sm text-gray-600">
+                            {translations.addressLocation || 'العنوان'}
                           </div>
                           <div className="font-medium text-gray-900">{item.address}</div>
                         </div>
                       </div>
                     )}
                     
-                    {item.website && (
-                      <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-xl">
-                        <FaGlobe className="text-purple-600 flex-shrink-0" />
-                        <div>
-                          <div className="text-sm text-gray-600">
-                            {translations.website || 'Website'}
-                          </div>
-                          <a
-                            href={item.website}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="font-medium text-blue-600 hover:underline break-all"
-                          >
-                            {translations.visitWebsite || 'Visit Website'}
-                          </a>
-                        </div>
-                      </div>
-                    )}
-                    
-                    <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-xl">
-                      <FaClock className="text-amber-600 flex-shrink-0" />
+                    <div className="flex items-center gap-3 p-3 bg-purple-50 rounded-xl">
+                      <FaClock className="text-purple-600 flex-shrink-0" />
                       <div>
                         <div className="text-sm text-gray-600">
-                          {translations.availability || 'Availability'}
+                          {translations.availability || 'التوفر'}
                         </div>
                         <div className="font-medium text-gray-900">
-                          {translations.checkRealTime || 'Check real-time availability'}
+                          {translations.checkRealTime || 'تحقق من التوفر في الوقت الفعلي'}
                         </div>
                       </div>
                     </div>
@@ -519,29 +501,58 @@ const DiscoverDetail = () => {
                 </div>
               </div>
 
+              {/* Quick Contact */}
+              <div className="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl p-6">
+                <h3 className="text-xl font-bold mb-4">
+                  {translations.quickContact || 'اتصال سريع'}
+                </h3>
+                <div className="space-y-3">
+                  <button
+                    onClick={() => {
+                      const whatsappLink = getWhatsAppLink(item.whatsapp || contacts?.whatsapp, `${translations.quickInquiry?.replace('{title}', item.title) || `Quick inquiry about ${item.title}`}`);
+                      window.open(whatsappLink, '_blank');
+                    }}
+                    className="w-full py-3 bg-white text-green-600 font-bold rounded-lg hover:bg-gray-100 transition flex items-center justify-center"
+                  >
+                    <FaWhatsapp className="mr-2" />
+                    {translations.messageOnWhatsApp || 'رسالة عبر واتساب'}
+                  </button>
+                  
+                  {item.phone && (
+                    <a
+                      href={`tel:${item.phone}`}
+                      className="flex items-center gap-3 hover:underline"
+                    >
+                      <FaPhone className="text-white/80" />
+                      <span>{item.phone}</span>
+                    </a>
+                  )}
+                </div>
+              </div>
+
               {/* Safety Guidelines */}
               <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
                 <h4 className="font-semibold text-gray-900 mb-4">
-                  {translations.safetyGuidelines || 'Safety & Guidelines'}
+                  {translations.safetyGuidelines || 'إرشادات السلامة'}
                 </h4>
                 <ul className="space-y-3 text-sm text-gray-600">
                   <li className="flex items-start gap-2">
                     <div className="bg-green-100 text-green-600 rounded-full p-1 mt-0.5 flex-shrink-0">
                       ✓
                     </div>
-                    <span>{translations.covidSafety || 'COVID-19 safety measures in place'}</span>
+                    <span>{translations.covidSafety || 'إجراءات السلامة من كوفيد-19 مطبقة'}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <div className="bg-green-100 text-green-600 rounded-full p-1 mt-0.5 flex-shrink-0">
                       ✓
                     </div>
-                    <span>{translations.contactlessCheckin || 'Contactless check-in available'}</span>
+                    <span>{translations.contactlessCheckin || 'تسجيل الوصول بدون تلامس متاح'}</span>
                   </li>
                   <li className="flex items-start gap-2">
                     <div className="bg-green-100 text-green-600 rounded-full p-1 mt-0.5 flex-shrink-0">
                       ✓
                     </div>
-                    <span>{translations.enhancedCleaning || 'Enhanced cleaning protocol'}</span>
+                    <span>{translations.enhancedCleaning || 'بروتوكول تنظيف معزز'}</span>
                   </li>
                 </ul>
               </div>
@@ -557,7 +568,7 @@ const DiscoverDetail = () => {
             <div className="p-6 md:p-8">
               <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-bold text-gray-900">
-                  {translations.bookYourStay || 'Book Your Stay'}
+                  {translations.bookYourStay || 'احجز إقامتك'}
                 </h3>
                 <button
                   onClick={() => setBookingModal(false)}
@@ -572,7 +583,7 @@ const DiscoverDetail = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {translations.checkIn || 'Check-in'}
+                      {translations.checkIn || 'تاريخ الوصول'}
                     </label>
                     <input
                       type="date"
@@ -584,7 +595,7 @@ const DiscoverDetail = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {translations.checkOut || 'Check-out'}
+                      {translations.checkOut || 'تاريخ المغادرة'}
                     </label>
                     <input
                       type="date"
@@ -596,7 +607,7 @@ const DiscoverDetail = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {translations.guests || 'Guests'}
+                      {translations.guests || 'الضيوف'}
                     </label>
                     <div className="flex items-center">
                       <button
@@ -608,8 +619,8 @@ const DiscoverDetail = () => {
                       </button>
                       <div className="flex-1 p-3 border-t border-b border-gray-300 text-center">
                         {bookingData.guests} {bookingData.guests === 1 ? 
-                          translations.guest || 'Guest' : 
-                          translations.guestsPlural || 'Guests'}
+                          translations.guest || 'ضيف' : 
+                          translations.guestsPlural || 'ضيوف'}
                       </div>
                       <button
                         type="button"
@@ -622,7 +633,7 @@ const DiscoverDetail = () => {
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {translations.rooms || 'Rooms'}
+                      {translations.rooms || 'الغرف'}
                     </label>
                     <div className="flex items-center">
                       <button
@@ -634,8 +645,8 @@ const DiscoverDetail = () => {
                       </button>
                       <div className="flex-1 p-3 border-t border-b border-gray-300 text-center">
                         {bookingData.rooms} {bookingData.rooms === 1 ? 
-                          translations.room || 'Room' : 
-                          translations.roomsPlural || 'Rooms'}
+                          translations.room || 'غرفة' : 
+                          translations.roomsPlural || 'غرف'}
                       </div>
                       <button
                         type="button"
@@ -654,21 +665,21 @@ const DiscoverDetail = () => {
                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                       <div>
                         <div className="text-sm text-gray-600">
-                          {translations.totalPrice || 'Total Price'}
+                          {translations.totalPrice || 'السعر الإجمالي'}
                         </div>
                         <div className="text-3xl font-bold text-gray-900">
                           ${parseInt(item.priceStartsFrom) * bookingData.rooms * 5}
                         </div>
                         <div className="text-sm text-gray-600">
-                          {translations.forNights?.replace('{nights}', '5') || 'for 5 nights'} • {translations.includesTaxes || 'Includes taxes & fees'}
+                          {translations.includesTaxes || 'لمدة 5 ليالي • يشمل الضرائب والرسوم'}
                         </div>
                       </div>
                       <div className="text-right">
                         <div className="text-sm text-green-600 mb-1">
-                          25% {translations.off || 'off'}
+                          25% {translations.off || 'خصم'}
                         </div>
                         <div className="text-lg font-semibold text-gray-900">
-                          {translations.saveAmount?.replace('{amount}', Math.round(parseInt(item.priceStartsFrom) * 0.25)) || `Save $${Math.round(parseInt(item.priceStartsFrom) * 0.25)}`}
+                          {translations.saveAmount?.replace('{amount}', Math.round(parseInt(item.priceStartsFrom) * 0.25)) || `وفر $${Math.round(parseInt(item.priceStartsFrom) * 0.25)}`}
                         </div>
                       </div>
                     </div>
@@ -681,25 +692,25 @@ const DiscoverDetail = () => {
                     onClick={() => setBookingModal(false)}
                     className="flex-1 py-3 border-2 border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition"
                   >
-                    {translations.cancel || 'Cancel'}
+                    {translations.cancel || 'إلغاء'}
                   </button>
                   <button
                     type="button"
                     onClick={() => {
-                      const message = `Booking request for ${item.title}:
-                      Check-in: ${bookingData.checkIn}
-                      Check-out: ${bookingData.checkOut}
-                      Guests: ${bookingData.guests}
-                      Rooms: ${bookingData.rooms}
-                      ${item.priceStartsFrom ? `Estimated Price: $${parseInt(item.priceStartsFrom) * bookingData.rooms * 5} (for 5 nights)` : ''}`;
+                      const message = `${translations.bookingRequest?.replace('{title}', item.title) || `Booking request for ${item.title}`}:
+                      ${translations.checkInLabel?.replace('{checkIn}', bookingData.checkIn) || `Check-in: ${bookingData.checkIn}`}
+                      ${translations.checkOutLabel?.replace('{checkOut}', bookingData.checkOut) || `Check-out: ${bookingData.checkOut}`}
+                      ${translations.guestsLabel?.replace('{guests}', bookingData.guests) || `Guests: ${bookingData.guests}`}
+                      ${translations.roomsLabel?.replace('{rooms}', bookingData.rooms) || `Rooms: ${bookingData.rooms}`}
+                      ${item.priceStartsFrom ? `${translations.estimatedPrice?.replace('{price}', `$${parseInt(item.priceStartsFrom) * bookingData.rooms * 5}`) || `Estimated Price: $${parseInt(item.priceStartsFrom) * bookingData.rooms * 5} (for 5 nights)`}` : ''}`;
                       
-                      const whatsappLink = getWhatsAppLink(message);
+                      const whatsappLink = getWhatsAppLink(item.whatsapp || contacts?.whatsapp, message);
                       window.open(whatsappLink, '_blank');
                       setBookingModal(false);
                     }}
                     className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg font-bold hover:shadow-lg transition hover:scale-[1.02]"
                   >
-                    {translations.confirmBooking || 'Confirm Booking'}
+                    {translations.confirmBooking || 'تأكيد الحجز'}
                   </button>
                 </div>
               </form>

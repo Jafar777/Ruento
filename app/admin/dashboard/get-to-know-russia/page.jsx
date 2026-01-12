@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLanguage } from '../../../context/LanguageContext';
 import Navbar from '../../../components/Navbar';
-import { FaArrowLeft, FaPlus, FaTrash, FaSave, FaImage, FaUpload, FaBed, FaStar, FaMapMarkerAlt, FaPhone, FaGlobe, FaWifi, FaSwimmingPool, FaCar, FaUtensils, FaDumbbell, FaPaw, FaTv, FaSnowflake, FaShower, FaDollarSign } from 'react-icons/fa';
+import { FaArrowLeft, FaPlus, FaTrash, FaSave, FaImage, FaUpload, FaBed, FaStar, FaMapMarkerAlt, FaPhone, FaWhatsapp, FaDollarSign } from 'react-icons/fa';
 
 const RussiaCategoriesManager = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -18,7 +18,7 @@ const RussiaCategoriesManager = () => {
     naturalPlaces: { items: [] },
     hotels: { items: [] }
   });
-  const [activeCategory, setActiveCategory] = useState('restaurants');
+  const [activeCategory, setActiveCategory] = useState('hotels');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
@@ -27,16 +27,21 @@ const RussiaCategoriesManager = () => {
 
   // Common hotel amenities with icons
   const commonAmenities = [
-    { value: 'free-wifi', label: 'Free WiFi', icon: <FaWifi /> },
-    { value: 'swimming-pool', label: 'Swimming Pool', icon: <FaSwimmingPool /> },
-    { value: 'spa', label: 'Spa', icon: <FaShower /> },
-    { value: 'fitness-center', label: 'Fitness Center', icon: <FaDumbbell /> },
-    { value: 'restaurant', label: 'Restaurant', icon: <FaUtensils /> },
-    { value: 'parking', label: 'Free Parking', icon: <FaCar /> },
-    { value: 'pet-friendly', label: 'Pet Friendly', icon: <FaPaw /> },
-    { value: 'air-conditioning', label: 'Air Conditioning', icon: <FaSnowflake /> },
-    { value: 'tv', label: 'TV', icon: <FaTv /> },
-    { value: 'breakfast', label: 'Free Breakfast', icon: <FaUtensils /> }
+    { value: 'free-wifi', label: 'Free WiFi', icon: '📶' },
+    { value: 'swimming-pool', label: 'Swimming Pool', icon: '🏊' },
+    { value: 'spa', label: 'Spa', icon: '💆' },
+    { value: 'fitness-center', label: 'Fitness Center', icon: '💪' },
+    { value: 'restaurant', label: 'Restaurant', icon: '🍽️' },
+    { value: 'parking', label: 'Free Parking', icon: '🅿️' },
+    { value: 'pet-friendly', label: 'Pet Friendly', icon: '🐕' },
+    { value: 'air-conditioning', label: 'Air Conditioning', icon: '❄️' },
+    { value: 'tv', label: 'TV', icon: '📺' },
+    { value: 'breakfast', label: 'Free Breakfast', icon: '🍳' },
+    { value: 'concierge', label: '24/7 Concierge', icon: '🛎️' },
+    { value: 'room-service', label: 'Room Service', icon: '🚪' },
+    { value: 'bar', label: 'Bar/Lounge', icon: '🍸' },
+    { value: 'business-center', label: 'Business Center', icon: '💼' },
+    { value: 'laundry', label: 'Laundry Service', icon: '👕' }
   ];
 
   useEffect(() => {
@@ -116,7 +121,7 @@ const addItem = (category) => {
           ...(category === 'hotels' ? {
             address: '',
             phone: '',
-            website: '',
+            whatsapp: '', // Changed from website to whatsapp
             priceStartsFrom: '',
             rating: '',
             amenities: [],
@@ -309,12 +314,15 @@ const addItem = (category) => {
     );
   }
 
-  const categoryTypes = [
-    { key: 'events', title: translations.events || 'Events', icon: '🎪' },
-    { key: 'museums', title: translations.museums || 'Museums', icon: '🏛️' },
-    { key: 'naturalPlaces', title: translations.naturalPlaces || 'Natural Places', icon: '🏞️' },
-    { key: 'hotels', title: translations.hotels || 'Hotels', icon: '🏨' }
-  ];
+const categoryTypes = [
+  { key: 'restaurants', title: translations.restaurants || 'Restaurants', icon: '🍽️' },
+  { key: 'touristAttractions', title: translations.touristAttractions || 'Tourist Attractions', icon: '🏛️' },
+  { key: 'events', title: translations.events || 'Events', icon: '🎪' },
+  { key: 'shopping', title: translations.shopping || 'Shopping', icon: '🛍️' },
+  { key: 'museums', title: translations.museums || 'Museums', icon: '🏛️' },
+  { key: 'naturalPlaces', title: translations.naturalPlaces || 'Natural Places', icon: '🏞️' },
+  { key: 'hotels', title: translations.hotels || 'Hotels', icon: '🏨' }
+];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-black p-8 text-white ">
@@ -472,16 +480,19 @@ const addItem = (category) => {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                           <div>
                             <label className=" text-sm font-medium mb-2 flex items-center">
-                              <FaGlobe className="mr-2" />
-                              {translations.website || 'Website'}
+                              <FaWhatsapp className="mr-2" />
+                              {translations.whatsapp || 'WhatsApp'}
                             </label>
                             <input
-                              type="url"
-                              value={item.website}
-                              onChange={(e) => updateItem(activeCategory, itemIndex, 'website', e.target.value)}
+                              type="text"
+                              value={item.whatsapp}
+                              onChange={(e) => updateItem(activeCategory, itemIndex, 'whatsapp', e.target.value)}
                               className="w-full p-3 bg-gray-700 rounded-md text-white"
-                              placeholder="https://example.com"
+                              placeholder="+1234567890"
                             />
+                            <p className="text-xs text-gray-400 mt-1">
+                              {translations.whatsappDesc || 'Enter WhatsApp number with country code (e.g., +1234567890)'}
+                            </p>
                           </div>
 
                           <div>
@@ -528,11 +539,14 @@ const addItem = (category) => {
                             <label className="block text-sm font-medium">
                               {translations.amenities || 'Amenities'}
                             </label>
+                            <span className="text-xs text-gray-400">
+                              {(item.amenities || []).length} selected
+                            </span>
                           </div>
                           
                           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 mb-4">
                             {commonAmenities.map((amenity) => (
-                              <label key={amenity.value} className="flex items-center space-x-2 cursor-pointer">
+                              <label key={amenity.value} className="flex items-center space-x-2 cursor-pointer p-2 hover:bg-gray-700 rounded">
                                 <input
                                   type="checkbox"
                                   checked={(item.amenities || []).includes(amenity.value)}
@@ -540,7 +554,7 @@ const addItem = (category) => {
                                   className="rounded bg-gray-700 border-gray-600"
                                 />
                                 <span className="flex items-center text-sm">
-                                  <span className="mr-1">{amenity.icon}</span>
+                                  <span className="mr-2 text-lg">{amenity.icon}</span>
                                   {amenity.label}
                                 </span>
                               </label>

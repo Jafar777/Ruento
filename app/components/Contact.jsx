@@ -148,16 +148,7 @@ const Contact = () => {
               </div>
             </div>
 
-            {/* Map placeholder */}
-            <div ref={mapRef} className="bg-white bg-opacity-10 backdrop-blur-md rounded-2xl p-6 border border-white border-opacity-20">
-              <h3 className="text-2xl font-semibold mb-4">{translations.ourLocation || 'Our Location'}</h3>
-              <div className="h-64 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
-                <div className="text-center">
-                  <FaMapMarkerAlt className="text-white text-4xl mx-auto mb-4" />
-                  <p className="text-lg">{contacts?.address || '123 Moscow Street, Moscow, Russia'}</p>
-                </div>
-              </div>
-            </div>
+     
           </div>
 
           {/* Contact Form - Keep as is */}
